@@ -1,0 +1,186 @@
+SQL : Everyday 5 Questions. (Thrice a week)
+JAVA: EVeryday 5 questions. (Thrice a week)
+DSA: Everyday 5 questions. (Thrice a week)
+JS : Try 2 Questions.
+HTML &  CSS : 2 Questions
+:::::::::::::Note:::::::::::
+JAVA : Everyday 2 Topic.
+HTML/CSS/JS/Angular/react: Everyday 1 Topic.
+SQL : Everyday 2 Topic.
+DSA : Everyday 2 topic.
+System Design (low and high level design)& Others : 1 tpoic.
+Docker / Kubernetes/ AWS/ AZURE : Any 1 topic. (Twice a week)
+Interview Quesstion : Everyday 10 Questions (any topic).
+Practice 1 interview.
+English Fluency : Thrice a week.
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+***************************************************************************************************************************************
+
+Day : 1  
+14/07/2024:
+Leet code :
+SQL50 : 
+
+Done :
+1.  Recyclable and Low Fat Products :
+    # Write your MySQL query statement below
+    SELECT product_id FROM Products
+    WHERE low_fats='Y' AND recyclable='Y';
+
+2. Find Customer Referee 
+# Write your MySQL query statement below
+SELECT name FROM Customer
+WHERE referee_id !=2 OR referee_id IS NULL;
+
+
+3.Big Countries
+    # Write your MySQL query statement below
+    SELECT name,population,area FROM World 
+    WHERE area >=3000000 OR population >=25000000;
+
+4. Article Views I
+    # Write your MySQL query statement below
+    SELECT DISTINCT  author_id AS id FROM
+    Views WHERE author_id= viewer_id 
+    ORDER BY author_id;
+
+5.  Invalid Tweets
+
+    SELECT tweet_id FROM Tweets
+    WHERE LENGTH (content) >15;
+
+
+DSA:
+note : 
+non-decreasing order : ascending order
+1. Remove Duplicates from Sorted Array.
+
+class Solution {
+//     public int removeDuplicates(int[] nums) {
+//         HashMap<Integer,Integer>map=new HashMap<>();
+//         int index=0;
+//         for(int num :nums){
+//             if(!map.containsKey(num)){
+//                 map.put(num,1);
+//                 nums[index++]=num;
+//             }
+//         }
+//         return map.size();
+// }
+     public int removeDuplicates(int[] nums) {
+         int n=nums.length;
+         int ans=0;
+         List<Integer> unique= new ArrayList<>();
+         int i=0;
+         while(i<n){
+             ans++;
+             unique.add(nums[i]);
+             int j=i+1;
+             while(j<n && nums[j]==nums[i]){
+                 j++;
+             }
+             i=j;  // eta krlam keno dekhte hbe
+         }
+        int ix=0;
+         for(int elem :unique){
+             nums[ix++]=elem;
+         }
+         return ans;
+     }
+
+
+DAY 2: 
+Java Coding question::
+
+1. https://www.javatpoint.com/java-coding-interview-questions
+2.https://javaconceptoftheday.com/java-interview-programs-with-solutions/
+
+1.  You have to write a Java program to reverse a given string using recursive method. 
+=>package code5;
+
+import java.util.Scanner;
+
+public class ReverseString {
+    public static void main(String[] args) {
+        String str;
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter a string :::");
+        str=sc.nextLine();
+        char []ch =str.toCharArray();
+        System.out.println("Reverse a string is ::");
+        int m =ch.length;
+        for(int i=m;i>0;i--){
+            System.out.println("reverse ch" +ch[i-1]);
+
+        }
+    }
+}
+#### Alternative :
+public class ReverseString {
+    public static void main(String[] args) {
+
+        StringBuffer sbf = new StringBuffer("MyJava");
+        System.out.println(sbf.reverse());
+    }
+}
+
+Alternative:::::::
+public class ReverseString {
+    public static void main(String[] args) {
+        String str = "Dibakar";
+
+        char[] strArray = str.toCharArray();
+
+        for (int i = strArray.length - 1; i >= 0; i--)
+        {
+            System.out.print(strArray[i]);     //Output : avaJyM
+        }
+    }
+}
+
+Alternative**************************
+public class ReverseString {
+        static String recursiveMethod(String str)
+        {
+            if ((null == str) || (str.length() <= 1))
+            {
+                return str;
+            }
+
+            return recursiveMethod(str.substring(1)) + str.charAt(0);
+        }
+
+    public static void main(String[] args) {
+        System.out.println(recursiveMethod("dibakar"));
+    }
+}
+
+
+
+
+sql : Notes :::::::::::::::::::::::
+
+=> CRUD (CREATE , READ,UPDATE, DELETE)
+=>Database : Database is a system that allow users to store and organise data.
+relational database 
+non relational database
+
+Index	SQL	 vs 
+NoSQL
+1)	Databases are categorized as Relational Database Management System (RDBMS).	NoSQL databases are categorized as Non-relational or distributed database system.
+2)	SQL databases have fixed or static or predefined schema.	NoSQL databases have dynamic schema.
+3)	SQL databases display data in form of tables so it is known as table-based database.	NoSQL databases display data as collection of key-value pair, documents, graph databases or wide-column stores.
+4)	SQL databases are vertically scalable.	NoSQL databases are horizontally scalable.
+5)	SQL databases use a powerful language "Structured Query Language" to define and manipulate the data.	In NoSQL databases, collection of documents are used to query the data. It is also called unstructured query language. It varies from database to database.
+6)	SQL databases are best suited for complex queries.	NoSQL databases are not so good for complex queries because these are not as powerful as SQL queries.
+7)	SQL databases are not best suited for hierarchical data storage.	NoSQL databases are best suited for hierarchical data storage.
+8)	MySQL, Oracle, Sqlite, PostgreSQL and MS-SQL etc. are the example of SQL database.	MongoDB, BigTable, Redis, RavenDB, Cassandra, Hbase, Neo4j, CouchDB etc. are the example of nosql database
+
+Database use :
+large amount of data.
+store real time data from websites.
+Easily combine with different dataset.
+Automotive steps and can re-use.
+Easy and safe access.
+Data integrity.
+Deep search capabilities.
