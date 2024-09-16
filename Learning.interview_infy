@@ -1,0 +1,3010 @@
+https://youtu.be/pn3KdTWaCK0?si=nvvwNxrxmw3Ptt5N
+https://youtu.be/ThiInrxUiHo?si=XbLyD6Y3u4eSQGyG
+Q1. OOPS Question
+Which among String or String Buffer should be preferred when there are lot of updates required to be done in the data?
+=>When a lot of updates (like concatenations, modifications, or insertions) are required to be done on a string, **`StringBuffer`** (or **`StringBuilder`**) should be preferred over **`String`**. Here's why:
+
+A. **`String` (Immutable)**:
+   - Strings in Java are immutable, meaning once a `String` object is created, it cannot be changed.
+   - If you modify a `String`, a new object is created every time, leading to additional memory consumption and reduced performance when performing numerous updates.
+   
+B. **`StringBuffer` (Mutable)**:
+   - `StringBuffer` is mutable, meaning you can modify the content of the object without creating new objects.
+   - It is more efficient for scenarios where a lot of modifications are required, as it avoids the overhead of creating multiple new objects.
+   - It is thread-safe because its methods are synchronized, which is useful in a multithreaded environment.
+
+If thread-safety is not required, **`StringBuilder`** (a non-synchronized version of `StringBuffer`) can be even more efficient.
+
+### Summary:
+- Use **`String`** when the string is mostly read-only and doesn’t change often.
+- Use **`StringBuffer`** when you need to modify the string often in a multithreaded environment.
+- Use **`StringBuilder`** when frequent modifications are needed in a single-threaded environment (faster than `StringBuffer`).
+
+
+Q2. .What is Singleton in java and create your own singleton class countering all breakable conditions?
+=>A **Singleton** in Java is a design pattern where a class is designed to have only one instance throughout the entire application runtime. It ensures that no more than one object is created for the class, and provides a global point of access to that object.
+
+### Key points of Singleton Pattern:
+1. **Private Constructor**: Prevents instantiation from other classes.
+2. **Static Field**: Holds the single instance of the class.
+3. **Public Method**: Provides a global access point to the instance.
+4. **Thread Safety**: Ensures that the singleton instance is created safely in a multi-threaded environment.
+5. **Preventing Reflection, Cloning, and Serialization Breaks**: Avoids techniques that can break singleton by creating more than one instance.
+
+### Breakable Conditions for Singleton:
+1. **Reflection**: Using reflection to call the private constructor and create multiple instances.
+2. **Serialization/Deserialization**: Serializing and then deserializing an object can create multiple instances.
+3. **Cloning**: Using `clone()` method of `Object` class can create another instance.
+4. **Multithreading**: In a multithreaded environment, two threads can create multiple instances simultaneously.
+
+### Singleton Class Implementation Countering All Breakable Conditions
+
+```java
+import java.io.ObjectStreamException;
+import java.io.Serializable;
+
+public class Singleton implements Serializable, Cloneable {
+    
+    // 1. Static variable to hold the single instance of the class
+    private static volatile Singleton instance = null;
+    
+    // 2. Private constructor to prevent instantiation
+    private Singleton() {
+        // Prevent reflection
+        if (instance != null) {
+            throw new RuntimeException("Use getInstance() method to create");
+        }
+    }
+    
+    // 3. Public static method to provide access to the single instance
+    public static Singleton getInstance() {
+        if (instance == null) {
+            synchronized (Singleton.class) {
+                if (instance == null) {
+                    instance = new Singleton();
+                }
+            }
+        }
+        return instance;
+    }
+    
+    // 4. Override clone method to prevent cloning
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        throw new CloneNotSupportedException("Cloning not allowed");
+    }
+
+    // 5. Prevent Serialization by overriding readResolve method
+    private Object readResolve() throws ObjectStreamException {
+        return instance; // Return the existing instance on deserialization
+    }
+    
+    // You can add any business logic methods here
+    public void showMessage() {
+        System.out.println("Hello from Singleton!");
+    }
+}
+```
+
+### Breakdown of Solutions for Each Breakable Condition:
+
+1. **Reflection Protection**: 
+   - In the constructor, we throw a `RuntimeException` if the instance is already created to prevent reflection from creating a new instance.
+   
+2. **Thread-Safe Lazy Initialization**: 
+   - The instance is initialized lazily and with double-checked locking, ensuring thread safety and avoiding unnecessary synchronization after the instance is initialized.
+
+3. **Cloning Protection**: 
+   - The `clone()` method is overridden to throw a `CloneNotSupportedException` to prevent creating a clone of the singleton.
+
+4. **Serialization Protection**: 
+   - The `readResolve()` method ensures that during deserialization, the same instance is returned, preventing the creation of a new instance.
+
+### Usage Example:
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        Singleton singleton = Singleton.getInstance();
+        singleton.showMessage(); // Outputs: Hello from Singleton!
+    }
+}
+```
+
+This implementation ensures the integrity of the Singleton pattern, handling all potential breakable conditions.
+
+
+ 2. What is Auto Configuration?
+ =>
+ **Auto-configuration** is a key feature in the **Spring Boot** framework that automatically configures the application based on the dependencies added in the classpath and sensible defaults. It eliminates the need for developers to manually define configuration settings for common components, making the development process easier and faster.
+
+### Key Concepts of Auto-Configuration:
+
+A. **Convention over Configuration**: Spring Boot follows a "convention over configuration" philosophy, which means the framework provides default behavior but allows developers to override these defaults with custom configurations if needed.
+
+B. **Component Scanning and Beans**: Spring Boot scans the classpath for available libraries and dependencies and tries to configure beans automatically. For example, if `spring-boot-starter-web` is present, Spring Boot automatically configures a web server and sets up default MVC components.
+
+C. **`@EnableAutoConfiguration`**: This annotation is used to enable Spring Boot’s auto-configuration feature. It tells Spring Boot to automatically configure the beans that are likely needed based on the application’s dependencies.
+    - Internally, it is part of the `@SpringBootApplication` annotation, so you usually don’t need to add it separately.
+
+D. **Auto-Configuration Classes**: Spring Boot has a number of pre-built auto-configuration classes that provide default configurations for commonly used libraries and frameworks like databases, web servers, security, etc.
+    - These classes are activated based on the presence of certain classes or properties in the classpath, using conditional annotations like `@ConditionalOnClass`, `@ConditionalOnMissingBean`, and more.
+
+E. **Customizing Auto-Configuration**: Developers can customize or completely disable auto-configuration by providing custom beans or by excluding specific auto-configuration classes using the `@EnableAutoConfiguration` annotation with exclusions.
+
+F. **Properties for Customization**: Spring Boot allows customization through properties files (`application.properties` or `application.yml`). Many of the auto-configured components can be fine-tuned through properties, allowing customization without needing to write custom configuration code.
+
+### Example:
+If you add a dependency like **Spring Data JPA** to your project, Spring Boot:
+A. Detects the presence of `spring-data-jpa` on the classpath.
+B. Automatically configures the `EntityManager`, `DataSource`, `TransactionManager`, and other JPA-related components.
+
+You can simply add the following dependency to `pom.xml`:
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-jpa</artifactId>
+</dependency>
+```
+
+And Spring Boot automatically configures JPA for you without any need for manual setup.
+
+### Disabling Auto-Configuration:
+If you need to disable a specific auto-configuration, you can do so like this:
+
+```java
+@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class })
+public class MyApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(MyApplication.class, args);
+    }
+}
+```
+
+### Advantages of Auto-Configuration:
+- **Reduces Boilerplate Code**: Automatically sets up common configurations.
+- **Rapid Development**: Reduces setup time and focuses on building application logic.
+- **Flexible**: Developers can override defaults easily if needed.
+- **Smart Defaults**: Provides sensible defaults based on best practices.
+
+### Summary:
+Spring Boot's **Auto-Configuration** feature simplifies the development process by automatically configuring the application based on the included dependencies, reducing the need for manual configuration. Developers can still override and customize these settings as needed.
+
+3. @Primary vs @Qualifier
+=> In Spring, both `@Primary` and `@Qualifier` are used to resolve ambiguity when multiple beans of the same type are available for dependency injection. They help the framework determine which specific bean should be injected when multiple candidates are present. Here's how they differ:
+
+### 1. `@Primary`
+
+- **Purpose**: Marks a bean as the default candidate when multiple beans of the same type are available. It gives Spring a "primary" bean to prefer during autowiring when no specific bean is requested.
+- **Usage**: Simple to use when you want one bean to be the default choice for injection in most cases.
+- **Global Preference**: It works globally within the application, meaning it is always preferred unless specifically overridden by `@Qualifier`.
+  
+#### Example of `@Primary`:
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    @Primary  // This bean will be the default one
+    public Service myPrimaryService() {
+        return new MyPrimaryServiceImpl();
+    }
+
+    @Bean
+    public Service mySecondaryService() {
+        return new MySecondaryServiceImpl();
+    }
+}
+```
+
+In the example above, if Spring autowires a `Service` type, the `myPrimaryService` bean will be injected by default.
+
+```java
+@Autowired
+private Service service;  // Injects myPrimaryService by default
+```
+
+### 2. `@Qualifier`
+
+- **Purpose**: Specifies exactly which bean should be injected when multiple beans of the same type are available. It allows fine-grained control by providing a specific identifier for a bean.
+- **Usage**: Used when you need to differentiate between multiple beans, and it overrides the `@Primary` annotation when used in conjunction.
+- **Bean-specific**: It allows you to target a specific bean rather than relying on a global preference.
+
+#### Example of `@Qualifier`:
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public Service myPrimaryService() {
+        return new MyPrimaryServiceImpl();
+    }
+
+    @Bean
+    public Service mySecondaryService() {
+        return new MySecondaryServiceImpl();
+    }
+}
+```
+
+You can specify which bean to inject using `@Qualifier`:
+
+```java
+@Autowired
+@Qualifier("mySecondaryService")
+private Service service;  // Injects mySecondaryService
+```
+
+In this case, even though `myPrimaryService` might be considered the primary bean if marked with `@Primary`, the `@Qualifier` annotation tells Spring to inject `mySecondaryService` specifically.
+
+### When to Use:
+- **Use `@Primary`** when one bean is the most commonly required and should be injected by default in most situations.
+- **Use `@Qualifier`** when you need to inject a specific bean that may not always be the primary one, or if you need multiple beans of the same type in different places.
+
+### Combining `@Primary` and `@Qualifier`:
+You can combine both annotations in your configuration. If `@Primary` is set on one bean, it will be the default unless `@Qualifier` is used to specifically request another bean.
+
+#### Example:
+
+```java
+@Bean
+@Primary
+public Service myPrimaryService() {
+    return new MyPrimaryServiceImpl();
+}
+
+@Bean
+public Service mySecondaryService() {
+    return new MySecondaryServiceImpl();
+}
+
+@Autowired
+private Service defaultService;  // Injects myPrimaryService
+
+@Autowired
+@Qualifier("mySecondaryService")
+private Service specificService;  // Injects mySecondaryService
+```
+
+### Summary:
+- **`@Primary`**: Sets the default bean for autowiring when there are multiple candidates.
+- **`@Qualifier`**: Used to specify exactly which bean to inject when multiple beans of the same type exist, overriding `@Primary` if needed.
+
+
+
+4. What is idempotent? 
+=> In Java (and programming in general), an **idempotent** operation is one that can be performed multiple times without changing the 
+result beyond the initial application. For example, calling a setter method or updating a resource to a specific state multiple
+ times will have the same effect as calling it once. This is critical in scenarios like **HTTP methods** (e.g., `GET`, `PUT`),
+  where repeated requests shouldn't have different effects. In Java, idempotence is a key concept for designing robust, 
+  stateless systems, ensuring operations are safe to retry without unintended side effects.
+
+
+5. What is class loader? Types of class loader 
+=>A **ClassLoader** in Java is a part of the Java Runtime Environment (JRE) responsible for dynamically loading Java classes into memory. It finds and loads classes by their fully qualified names at runtime, rather than compile-time. Each class in Java is loaded by a specific class loader, which is part of the Java Class Loading Mechanism.
+
+### Types of Class Loaders:
+1. **Bootstrap ClassLoader**: Loads core Java classes (`java.lang`, `java.util`) from the Java runtime library (`rt.jar`). It's part of the JVM and written in native code.
+2. **Extension (Platform) ClassLoader**: Loads classes from the Java Extension directory (`jre/lib/ext`).
+3. **Application (System) ClassLoader**: Loads classes from the application's classpath (like `CLASSPATH` environment variable, `jar` files).
+4. **Custom ClassLoader**: Developers can create their own class loaders by extending `ClassLoader` to load classes in specific ways.
+
+Class loaders follow a parent-child delegation model to avoid loading duplicate classes.
+
+
+6. Heap memory and stack memory 
+=> In Java, **heap memory** and **stack memory** are two key areas of memory management used by the Java Virtual Machine (JVM) for storing data during the execution of a program.
+
+### **Heap Memory**:
+- **Purpose**: Used for dynamic memory allocation, where Java objects and instance variables are stored.
+- **Global Access**: Objects created in the heap are globally accessible from any part of the application.
+- **Memory Management**: Managed by the Garbage Collector, which automatically frees up memory by removing unused objects.
+- **Size**: Can be much larger than stack memory and can grow dynamically, subject to JVM limits.
+  
+### **Stack Memory**:
+- **Purpose**: Used for storing local variables, method calls, and function call frames.
+- **LIFO (Last-In-First-Out)**: Follows the stack data structure where each method call creates a new block in the stack.
+- **Lifetime**: Each block is removed when the method finishes execution.
+- **Thread-Specific**: Each thread has its own stack, making it faster but with limited space.
+  
+### Key Differences:
+- **Heap**: Stores objects, is globally accessible, and managed by garbage collection.
+- **Stack**: Stores method calls and local variables, is faster, and has limited scope per thread.
+
+
+7. What is @Configuration and @bean?
+=> In Spring Boot, `@Configuration` and `@Bean` are used to define and configure beans (components or services) in the Spring Application Context.
+
+### 1. **`@Configuration`**:
+- **Purpose**: Marks a class as a source of bean definitions for the Spring IoC (Inversion of Control) container. It tells Spring that this class contains one or more methods annotated with `@Bean`, which will create and configure beans.
+- **Usage**: It is typically used to define beans explicitly, especially when you want to customize bean creation or have more control over the bean lifecycle.
+  
+#### Example:
+```java
+@Configuration
+public class AppConfig {
+    // Defines beans in this configuration class
+}
+```
+
+### 2. **`@Bean`**:
+- **Purpose**: Indicates that a method produces a bean to be managed by the Spring container. The method's return value will be registered as a bean in the application context.
+- **Usage**: Placed inside a `@Configuration` class, it allows custom bean definitions and configurations.
+  
+#### Example:
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public MyService myService() {
+        return new MyServiceImpl();
+    }
+}
+```
+
+In this example, `myService()` method returns an instance of `MyService`, which Spring will manage as a bean. This method gets called by Spring during the application startup, not manually by developers.
+
+### Key Points:
+- **`@Configuration`**: Denotes a configuration class that contains bean definitions.
+- **`@Bean`**: Creates and configures individual beans inside a `@Configuration` class.
+
+
+8. Why is string immutable in java? 
+=> **String immutability** in Java means that once a `String` object is created, it cannot be modified. Any change to a `String` creates a new object rather than modifying the original. There are several important reasons for making `String` immutable:
+
+### A. **Security**:
+   - Strings are used in many sensitive areas, such as passwords, file paths, and network connections (e.g., database URLs). If `String` were mutable, a reference to a string object could be changed unknowingly, leading to security risks.
+
+### B. **String Pool Optimization**:
+   - Java maintains a **String pool** where all string literals are stored. Since strings are immutable, they can be reused without the risk of being changed. This reduces memory overhead by avoiding multiple instances of the same string.
+
+### C. **Thread Safety**:
+   - Immutable objects are inherently thread-safe because their state cannot be changed after creation. This means `String` objects can be safely shared between multiple threads without synchronization.
+
+### D. **Caching Hash Values**:
+   - Since `String` objects are immutable, their hash code can be cached after the first computation. This makes strings efficient for use as keys in hash-based collections like `HashMap`, as repeated hash code computations are avoided.
+
+### E. **Design Simplicity**:
+   - Immutable objects are easier to work with since they don’t need defensive copies, simplifying the code logic and reducing potential errors.
+
+### Summary:
+The immutability of `String` in Java ensures security, memory efficiency, thread safety, and better performance in key areas like caching and reuse, making it a crucial design decision in the language.
+
+9. Write your own immutable class.
+=> To create an immutable class in Java, you need to ensure that the class's state cannot be modified after it's created. Here's an example of a simple immutable class:
+
+```java
+public final class ImmutablePerson {
+    private final String name;
+    private final int age;
+
+    public ImmutablePerson(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+}
+```
+
+### Key Points:
+- **`final` class**: Prevents subclassing.
+- **Private final fields**: Ensures fields cannot be changed after initialization.
+- **No setters**: Prevents modifying the state.
+- **Constructor initialization**: Ensures all fields are set only once.
+
+ 10. How Hashmap works internally? 
+ => In Java, **HashMap** works internally based on **hashing** and **buckets**. Here's a simplified explanation:
+
+a. **Key-Value Storage**: HashMap stores data in the form of key-value pairs. Each key-value pair is an instance of the `Entry` class (or `Node` in Java 8+).
+
+B. **Hashing**: When a key is inserted, its `hashCode()` method is called to compute the hash code. This hash code is then processed (using bit manipulation) to determine the **index** of the bucket where the key-value pair should be stored in an internal array.
+C. **Bucket**: Each index in the array is a bucket, and multiple entries can be stored in the same bucket if they result in the same hash code. This leads to **collision handling**.
+
+D. **Collision Handling**: When multiple keys hash to the same bucket, HashMap uses **linked lists** (or binary search trees in Java 8+ if the list grows too large) to store multiple entries.
+
+E. **Retrieval**: To get a value, the `hashCode()` of the key is calculated, the bucket is located, and the entries are traversed (comparing keys using `equals()`) until the matching key is found.
+
+F. **Rehashing**: If the HashMap reaches a certain load factor (default 0.75), it resizes its internal array to reduce collisions.
+
+This structure provides **O(1)** average time complexity for insertions and lookups.
+
+11. What is Garbage Collector and how it works?
+=> The **Garbage Collector (GC)** in Java is an automatic memory management tool that frees up memory by removing objects that are no longer referenced or in use by the program, preventing memory leaks.
+
+### How It Works:
+A. **Marking**: The GC starts by identifying all reachable objects from **root references** (e.g., static variables, local variables, active threads). It marks all objects that are still reachable.
+   
+B. **Sweeping**: After marking, the GC removes all unmarked (unreachable) objects, freeing up memory.
+
+C. **Compact/Copying (optional)**: In some algorithms (e.g., generational GC), memory is compacted after collection to optimize space, reducing fragmentation.
+
+### Generational Approach:
+Java uses **generational garbage collection**, dividing objects into:
+- **Young Generation**: Newly created objects (frequent collections).
+- **Old Generation**: Long-lived objects (less frequent collections).
+
+The GC typically uses different algorithms (like **Mark-and-Sweep** or **Mark-and-Compact**) to manage memory, and runs automatically 
+when necessary, although developers can manually request it using `System.gc()`.
+
+12. Checked vs unchecked exceptions 
+=> In Java, exceptions are classified into two categories: **checked** and **unchecked** exceptions. These differ in how they are handled by the compiler and the developer.
+
+### A. **Checked Exceptions**:
+- **Definition**: These are exceptions that are checked at compile-time. The compiler requires that they be either caught or declared in the method signature using the `throws` keyword.
+- **Examples**: `IOException`, `SQLException`, `FileNotFoundException`.
+- **Handling**: You must handle checked exceptions using `try-catch` blocks or by propagating them using the `throws` clause.
+  
+#### Example:
+```java
+public void readFile() throws IOException {
+    FileReader file = new FileReader("file.txt");
+}
+
+###B. **Unchecked Exceptions**:
+- **Definition**: These are exceptions that occur at runtime and are not checked at compile-time. They inherit from `RuntimeException`.
+- **Examples**: `NullPointerException`, `ArrayIndexOutOfBoundsException`, `ArithmeticException`.
+- **Handling**: Unchecked exceptions do not need to be explicitly caught or declared. They can be avoided by writing robust code.
+
+#### Example:
+```java
+public void divide(int a, int b) {
+    int result = a / b;  // Can throw ArithmeticException at runtime
+}
+```
+
+### Key Difference:
+- **Checked**: Must be handled or declared; enforced by the compiler.
+- **Unchecked**: Not required to be explicitly handled; occurs at runtime.
+
+13. Throw vs Throws 
+=> 
+In Java, `throw` and `throws` are both used to handle exceptions but serve different purposes.
+
+### A. **`throw`**:
+- **Purpose**: Used to **explicitly throw an exception** within a method or block of code.
+- **Usage**: When you want to manually trigger an exception in your code.
+- **Example**: You can throw either checked or unchecked exceptions using `throw`.
+
+#### Example:
+```java
+public void validateAge(int age) {
+    if (age < 18) {
+        throw new IllegalArgumentException("Age must be 18 or above");
+    }
+}
+```
+- Here, `throw` is used to explicitly raise an `IllegalArgumentException` when the condition is met.
+
+### B. **`throws`**:
+- **Purpose**: Used in the **method signature** to declare that a method **might throw one or more exceptions**. It is a way of warning the caller that they need to handle the potential exceptions.
+- **Usage**: Used with **checked exceptions** to propagate them up the call stack.
+  
+#### Example:
+```java
+public void readFile() throws IOException {
+    FileReader file = new FileReader("file.txt");
+}
+```
+- In this example, the `throws` keyword declares that the `readFile` method might throw an `IOException`, and the caller must handle or propagate it.
+
+### Key Differences:
+- **`throw`**: Used to explicitly throw an exception inside a method.
+- **`throws`**: Declares that a method may throw an exception, which must be handled by the caller.
+
+
+14. What is Aggregation and Composition? 
+=> **Aggregation** and **Composition** are two forms of **Association** in object-oriented programming that describe relationships between classes.
+
+### 1. **Aggregation**:
+- **Definition**: A "has-a" relationship where one class is related to another but can exist independently. The lifetime of the dependent object is not tied to the lifecycle of the container object.
+- **Loosely Coupled**: The objects can exist separately, and removing the container object does not affect the dependent object.
+  
+#### Example:
+```java
+class Car {
+    private Engine engine;  // Car "has-a" Engine
+    public Car(Engine engine) {
+        this.engine = engine;
+    }
+}
+```
+- Here, `Car` has an `Engine`, but the `Engine` can exist independently from `Car`. If the `Car` object is destroyed, the `Engine` can still exist.
+
+### 2. **Composition**:
+- **Definition**: A stronger "has-a" relationship where one class contains another, and the contained object's lifetime is strictly dependent on the containing object.
+- **Tightly Coupled**: The dependent object cannot exist without the container object, and if the container is destroyed, so is the dependent object.
+
+#### Example:
+```java
+class House {
+    private Room room = new Room();  // House "has-a" Room
+}
+```
+- In this case, `Room` cannot exist without `House`. If the `House` is destroyed, the `Room` is also destroyed.
+
+### Key Differences:
+- **Aggregation**: Objects have an independent lifecycle (loosely coupled).
+- **Composition**: Objects have a dependent lifecycle (tightly coupled).
+
+
+15. I want to add element inside a collection where duplicates won't be allowed and insertion order also be preserved. What should I use? 
+=>To store elements where **duplicates are not allowed** and **insertion order is preserved**, you should use **`LinkedHashSet`** in Java.
+
+### Why `LinkedHashSet`?
+- **No Duplicates**: It implements the `Set` interface, which ensures that no duplicate elements are allowed.
+- **Preserves Insertion Order**: It maintains a **doubly-linked list** internally to preserve the insertion order of elements, unlike `HashSet` which doesn't guarantee any order.
+
+### Example:
+```java
+import java.util.LinkedHashSet;
+
+public class Main {
+    public static void main(String[] args) {
+        LinkedHashSet<String> set = new LinkedHashSet<>();
+        set.add("Apple");
+        set.add("Banana");
+        set.add("Orange");
+        set.add("Apple");  // Duplicate, will not be added
+
+        for (String fruit : set) {
+            System.out.println(fruit);
+        }
+    }
+}
+```
+
+### Output:
+```
+Apple
+Banana
+Orange
+Here, the `LinkedHashSet` preserves the order in which elements were inserted and ensures no duplicates.
+
+16. Limit vs Skip 
+=> In Java, particularly when working with **Streams** in the **Java Stream API**, the methods `limit()` and `skip()` are used to control the processing of elements in a stream by restricting the number of elements or skipping some elements.
+
+### 1. **`limit(int maxSize)`**:
+- **Purpose**: Returns a new stream that contains **at most** `maxSize` elements. It limits the number of elements processed or collected from the stream.
+- **Usage**: Useful when you want to process or retrieve only a certain number of elements from a larger stream.
+  
+#### Example:
+```java
+Stream<String> stream = Stream.of("A", "B", "C", "D", "E");
+stream.limit(3).forEach(System.out::println);  // Prints: A, B, C
+```
+
+### 2. **`skip(int n)`**:
+- **Purpose**: Returns a new stream that **skips the first `n` elements** and processes the rest. It discards a specific number of elements from the start of the stream.
+- **Usage**: Helpful when you need to ignore the first few elements and start processing from a later position.
+  
+#### Example:
+```java
+Stream<String> stream = Stream.of("A", "B", "C", "D", "E");
+stream.skip(2).forEach(System.out::println);  // Prints: C, D, E
+```
+
+### Combined Usage:
+You can use `limit()` and `skip()` together to process a specific range of elements in a stream.
+
+#### Example:
+```java
+Stream<String> stream = Stream.of("A", "B", "C", "D", "E");
+stream.skip(1).limit(3).forEach(System.out::println);  // Prints: B, C, D
+```
+
+### Summary:
+- **`limit()`**: Restricts the number of elements processed.
+- **`skip()`**: Skips a specified number of elements before processing the rest.
+
+
+17. Stream vs Parallel stream 
+=> In Java, **Stream** and **Parallel Stream** are both used to process collections of data, but they differ in how they execute tasks.
+
+### 1. **Stream**:
+- **Sequential Processing**: Elements are processed one at a time in a single thread.
+- **Performance**: Best suited for small data sets or tasks that don’t benefit from parallelism.
+- **Usage**: The default behavior when using the `stream()` method.
+  
+#### Example:
+```java
+List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5);
+numbers.stream().forEach(System.out::println);  // Processes elements sequentially
+```
+
+### 2. **Parallel Stream**:
+- **Parallel Processing**: Splits the task into multiple sub-tasks, processing them concurrently using multiple threads.
+- **Performance**: Useful for large data sets or CPU-intensive tasks, leveraging multi-core processors for improved performance.
+- **Usage**: Created using the `parallelStream()` method or by calling `.parallel()` on a stream.
+  
+#### Example:
+```java
+numbers.parallelStream().forEach(System.out::println);  // Processes elements in parallel
+```
+
+### Key Difference:
+- **Stream**: Sequential, single-threaded.
+- **Parallel Stream**: Concurrent, multi-threaded.
+
+18. Lock vs Synchronisation 
+=>In Java, **Lock** and **Synchronization** are mechanisms used to control access to shared resources in a multi-threaded environment, but they have distinct features and use cases.
+
+### **Synchronization**:
+- **Built-in Mechanism**: Uses the `synchronized` keyword to lock methods or blocks of code.
+- **Automatic Handling**: Provides implicit locking for critical sections.
+- **Limited Flexibility**: Cannot attempt to acquire locks or set timeouts. If a thread cannot acquire the lock, it waits indefinitely.
+- **Ease of Use**: Simpler to implement for straightforward scenarios.
+
+#### Example:
+```java
+public synchronized void method() {
+    // Critical section
+}
+```
+
+### **Lock**:
+- **Explicit Mechanism**: Part of `java.util.concurrent.locks` package, such as `ReentrantLock`.
+- **Advanced Features**: Provides additional capabilities like timed locks, try-lock, and interruptible lock acquisition.
+- **Flexibility**: Allows more fine-grained control and customization for concurrent programming.
+- **Explicit Handling**: Requires explicit locking and unlocking, typically with `lock()` and `unlock()` methods.
+
+#### Example:
+```java
+Lock lock = new ReentrantLock();
+lock.lock();
+try {
+    // Critical section
+} finally {
+    lock.unlock();
+}
+```
+
+### Key Differences:
+- **Synchronization**: Simpler, built-in, but less flexible.
+- **Lock**: More advanced, offers additional features for complex concurrency control.
+
+20. Spring bean scopes 
+=>In Spring, bean scopes determine the lifecycle and visibility of beans in the Spring context. Here are the main bean scopes available:
+
+### 1. **Singleton** (default):
+- **Description**: A single instance of the bean is created and shared across the entire Spring container. This instance is reused whenever the bean is requested.
+- **Usage**: Default scope; used for stateless beans or when a single shared instance is required.
+  
+#### Example:
+```java
+@Bean
+public MyService myService() {
+    return new MyService();
+}
+```
+
+### 2. **Prototype**:
+- **Description**: A new instance of the bean is created each time it is requested from the Spring container. The bean is not shared, and each request results in a new object.
+- **Usage**: Used for beans with state or when each instance needs to be unique.
+  
+#### Example:
+```java
+@Bean
+@Scope("prototype")
+public MyService myService() {
+    return new MyService();
+}
+```
+
+### 3. **Request**:
+- **Description**: A new instance of the bean is created for each HTTP request. It is scoped to the lifecycle of an HTTP request and only available within the request.
+- **Usage**: Typically used in web applications to handle request-specific data.
+
+#### Example:
+```java
+@Bean
+@Scope("request")
+public MyService myService() {
+    return new MyService();
+}
+```
+
+### 4. **Session**:
+- **Description**: A new instance of the bean is created for each HTTP session. It is scoped to the lifecycle of an HTTP session.
+- **Usage**: Used in web applications where the bean should be unique per user session.
+
+#### Example:
+```java
+@Bean
+@Scope("session")
+public MyService myService() {
+    return new MyService();
+}
+```
+
+### 5. **Application**:
+- **Description**: Similar to Singleton, but the scope is limited to the lifecycle of a Spring application context. It is not commonly used but can be configured in certain cases.
+- **Usage**: Rarely used; more common in custom configurations.
+
+#### Example:
+```java
+@Bean
+@Scope("application")
+public MyService myService() {
+    return new MyService();
+}
+```
+
+### 6. **WebSocket**:
+- **Description**: A new instance of the bean is created for each WebSocket session. It is scoped to the lifecycle of a WebSocket session.
+- **Usage**: Used in applications with WebSocket support to manage WebSocket-specific data.
+
+#### Example:
+```java
+@Bean
+@Scope("websocket")
+public MyService myService() {
+    return new MyService();
+}
+```
+
+### Summary:
+- **Singleton**: One instance per Spring container.
+- **Prototype**: New instance per request.
+- **Request**: New instance per HTTP request.
+- **Session**: New instance per HTTP session.
+- **Application**: Limited to Spring application context (rarely used).
+- **WebSocket**: New instance per WebSocket session.
+
+22. Monolithic vs Microservices
+=> **Monolithic** architecture involves a single, unified application where all components are interconnected and managed as one unit. It is simple but can become
+ unwieldy as it grows, making updates and scaling challenging.
+
+**Microservices** architecture breaks down an application into small, independent services, each handling a specific business function. These services communicate
+ via APIs and can be developed, deployed, and scaled individually. This approach offers flexibility and scalability but introduces complexity in managing inter-service
+  communication and data consistency.
+
+23. How Eureka works? 
+=> **Eureka** is a service discovery tool used in microservices architectures, particularly with Spring Cloud. It enables services to find and communicate with each other without hard-coded IP addresses.
+
+### How It Works:
+1. **Service Registration**: Each service instance registers itself with the Eureka server at startup. The service sends its metadata, including its network location, to the Eureka server.
+   
+2. **Service Discovery**: Other services or clients query the Eureka server to obtain the locations of registered services. They use this information to make API calls or send requests to the appropriate service instances.
+
+3. **Health Checks**: Eureka server performs periodic health checks to ensure that registered services are still active. If a service instance fails to respond, it is removed from the registry.
+
+4. **Client-Side Load Balancing**: Services use the information from Eureka to load-balance requests among multiple instances, enhancing resilience and scalability.
+
+Eureka supports dynamic scaling and failure recovery, making it vital for managing microservices in cloud environments.
+
+24. Why static and defaults methods are added inside interfaces?
+=> **Static** and **default** methods were added to Java interfaces to enhance flexibility and functionality:
+
+- **Static Methods**: Allow utility or helper methods to be defined within interfaces. These methods belong to the interface itself, not to instances of classes implementing the interface, and are called using the interface name.
+
+- **Default Methods**: Provide a way to add new methods to interfaces without breaking existing implementations. They allow interfaces to have method implementations that can be inherited by implementing classes, offering backward compatibility and reducing the need for boilerplate code.
+
+These features enable more versatile interface design and evolution while maintaining compatibility with existing code.
+interface MyInterface {
+    // Default method with an implementation
+    default void defaultMethod() {
+        System.out.println("Default method in interface");
+    }
+
+    // Static method with an implementation
+    static void staticMethod() {
+        System.out.println("Static method in interface");
+    }
+}
+
+// Implementing the interface
+class MyClass implements MyInterface {
+    // Optional: Override the default method if needed
+    @Override
+    public void defaultMethod() {
+        System.out.println("Overridden default method in class");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        MyClass obj = new MyClass();
+        obj.defaultMethod(); // Calls overridden method in MyClass
+        MyInterface.staticMethod(); // Calls static method in MyInterface
+    }
+}
+output:
+Overridden default method in class
+Static method in interface
+
+
+Q3. Spring Boot Question
+What is the @Controller annotation used for? How can you create a controller without an annotation?    
+=>
+### `@Controller` Annotation in Spring
+
+The `@Controller` annotation in Spring MVC is used to mark a class as a Spring MVC controller. It indicates that the class is responsible for handling web requests and returning responses, typically in the form of views. This annotation is a specialized version of `@Component`, allowing Spring to automatically detect and register the class as a Spring bean during component scanning.
+
+### Key Features of `@Controller`:
+
+- **Request Handling**: Methods in a `@Controller` class are typically mapped to web requests using `@RequestMapping` or similar annotations (`@GetMapping`, `@PostMapping`, etc.).
+- **Model and View**: Methods in a `@Controller` return a `ModelAndView` object or a `String` representing the name of the view, or they can use `@ResponseBody` to return data directly.
+
+### Example:
+
+```java
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/home")
+public class HomeController {
+
+    @GetMapping
+    public String home() {
+        return "home";  // Returns the name of the view (e.g., home.jsp or home.html)
+    }
+}
+```
+
+### Creating a Controller Without Annotations
+
+While `@Controller` is the standard way to define a controller in Spring MVC, it is possible to create a controller without using annotations by using a configuration-based approach with `HandlerMapping` and `HandlerAdapter`.
+
+#### Example Without Annotations:
+
+1. **Define a Controller Class**:
+
+   You can create a controller class that implements the `Controller` interface from the Spring framework.
+
+   ```java
+   import org.springframework.web.servlet.ModelAndView;
+   import org.springframework.web.servlet.mvc.Controller;
+   import javax.servlet.http.HttpServletRequest;
+   import javax.servlet.http.HttpServletResponse;
+
+   public class HomeController implements Controller {
+       @Override
+       public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) {
+           return new ModelAndView("home");  // Returns the name of the view
+       }
+   }
+   ```
+
+2. **Configure the Controller in `DispatcherServlet`**:
+
+   In the `spring-servlet.xml` (or equivalent configuration file), you would need to define the mapping manually.
+
+   ```xml
+   <bean id="homeController" class="com.example.HomeController"/>
+
+   <bean class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+       <property name="mappings">
+           <props>
+               <prop key="/home">homeController</prop>
+           </props>
+       </property>
+   </bean>
+
+   <bean class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter"/>
+   ```
+
+### Summary
+
+- **`@Controller`** is the modern, annotation-based way to define controllers in Spring MVC, making them easier to create and manage.
+- **Without Annotations**: Controllers can be created by implementing the `Controller` interface and manually configuring request mappings and 
+handler adapters in the Spring configuration file, which is less common and more cumbersome in modern applications.
+
+Q4. write a code to filter out loans with incomplete status using java 8 features.
+=> To filter out loans with an incomplete status using Java 8 features, you can leverage the `Stream` API. Let's assume you have a `Loan` class with a `status` field, and you want to filter out loans where the status is "Incomplete". Here's how you can do it:
+
+### Sample `Loan` Class:
+
+```java
+public class Loan {
+    private String id;
+    private String status;
+
+    // Constructor, Getters, Setters
+
+    public Loan(String id, String status) {
+        this.id = id;
+        this.status = status;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    @Override
+    public String toString() {
+        return "Loan{id='" + id + "', status='" + status + "'}";
+    }
+}
+```
+
+### Filtering Loans with Java 8 `Stream` API:
+
+```java
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class LoanFilterExample {
+    public static void main(String[] args) {
+        List<Loan> loans = Arrays.asList(
+                new Loan("1", "Approved"),
+                new Loan("2", "Incomplete"),
+                new Loan("3", "Pending"),
+                new Loan("4", "Incomplete"),
+                new Loan("5", "Approved")
+        );
+
+        // Filter out loans with "Incomplete" status
+        List<Loan> filteredLoans = loans.stream()
+                .filter(loan -> !"Incomplete".equalsIgnoreCase(loan.getStatus()))
+                .collect(Collectors.toList());
+
+        // Output the filtered loans
+        filteredLoans.forEach(System.out::println);
+    }
+}
+```
+
+### Explanation:
+
+A. **Stream Creation**:
+   - `loans.stream()` creates a stream from the list of loans.
+
+B. **Filtering**:
+   - `.filter(loan -> !"Incomplete".equalsIgnoreCase(loan.getStatus()))` filters out loans where the status is "Incomplete". The `equalsIgnoreCase` method is used to ensure that the comparison is case-insensitive.
+
+c. **Collecting Results**:
+   - `.collect(Collectors.toList())` collects the filtered stream back into a `List` of loans.
+
+d. **Output**:
+   - The filtered loans are printed to the console.
+
+### Output:
+
+If you run the above code, the output will exclude loans with the "Incomplete" status:
+
+```
+Loan{id='1', status='Approved'}
+Loan{id='3', status='Pending'}
+Loan{id='5', status='Approved'}
+```
+
+This code effectively filters out any loans that have an "Incomplete" status using Java 8 features like the Stream API.
+
+
+Q5. SpringBoot Question
+What is the starter dependency of the Spring boot module?
+
+=> In Spring Boot, **starter dependencies** are a set of pre-configured dependencies that simplify the process of setting up an application by including all necessary libraries for a specific feature or technology. They act as a convenient package of libraries for various functionalities like web development, data access, security, etc.
+
+### Key Features of Starter Dependencies:
+1. **Simplified Dependency Management**: Instead of manually adding multiple individual dependencies, you can use a single starter dependency to include everything needed for a specific task.
+2. **Convention Over Configuration**: Spring Boot starters provide sensible defaults to quickly get started with minimal configuration.
+
+### Common Starter Dependencies in Spring Boot:
+
+A. **`spring-boot-starter-web`**:
+   - Used to build web applications, including RESTful services.
+   - Includes libraries like Spring MVC, Jackson (for JSON processing), and Tomcat (as a default embedded server).
+   ```xml
+   <dependency>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-web</artifactId>
+   </dependency>
+   ```
+
+B. **`spring-boot-starter-data-jpa`**:
+   - For working with JPA-based databases.
+   - Includes Hibernate, Spring Data JPA, and other ORM libraries.
+   ```xml
+   <dependency>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-data-jpa</artifactId>
+   </dependency>
+   ```
+
+C. **`spring-boot-starter-security`**:
+   - Adds support for Spring Security.
+   - Used for handling authentication and authorization in the application.
+   ```xml
+   <dependency>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-security</artifactId>
+   </dependency>
+   ```
+
+D. **`spring-boot-starter-test`**:
+   - Provides testing support including JUnit, Mockito, and Spring Test.
+   ```xml
+   <dependency>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-test</artifactId>
+   </dependency>
+   ```
+
+E. **`spring-boot-starter-thymeleaf`**:
+   - For building web applications using the Thymeleaf template engine.
+   ```xml
+   <dependency>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-thymeleaf</artifactId>
+   </dependency>
+   ```
+
+### Benefits:
+- **Reduced Boilerplate Code**: You don't need to manually manage dependencies for commonly used frameworks.
+- **Ease of Setup**: Starters come pre-configured with sane defaults, which can be customized as needed.
+- **Consistent Versions**: Starters manage compatible versions of dependencies, reducing conflicts.
+
+These starters help developers quickly bootstrap and configure applications without worrying about individual dependency management.
+
+Q6. OOPS Question
+How would you differentiate between a String, StringBuffer, and a StringBuilder?
+=>
+The key differences between `String`, `StringBuffer`, and `StringBuilder` in Java lie in their mutability, thread safety, and performance. Here's a breakdown of each:
+
+### A. **String**:
+   - **Immutability**: Strings are **immutable**, meaning that once a `String` object is created, it cannot be modified. Any changes to a `String` result in a new `String` object being created.
+   - **Thread Safety**: Since `String` is immutable, it is inherently thread-safe. Multiple threads can safely use a `String` object without synchronization.
+   - **Performance**: Due to immutability, frequent concatenations create new objects, which can result in slower performance and increased memory usage.
+   - **Use Case**: Suitable when the value doesn't change frequently, like string literals or constant values.
+
+   ```java
+   String str = "Hello";
+   str += " World";  // A new String object is created
+   ```
+
+### B. **StringBuffer**:
+   - **Mutability**: `StringBuffer` is **mutable**, meaning you can modify the contents of the buffer without creating new objects.
+   - **Thread Safety**: It is **thread-safe** as all its methods are synchronized. This means only one thread can modify the `StringBuffer` at a time, ensuring data consistency in multi-threaded environments.
+   - **Performance**: Because of synchronization, `StringBuffer` can be slower than `StringBuilder` in single-threaded scenarios.
+   - **Use Case**: Suitable when strings are being modified frequently, and thread safety is required.
+
+   ```java
+   StringBuffer sb = new StringBuffer("Hello");
+   sb.append(" World");  // Modifies the same object
+   ```
+
+### C. **StringBuilder**:
+   - **Mutability**: `StringBuilder` is also **mutable**, similar to `StringBuffer`, and allows for modifications without creating new objects.
+   - **Thread Safety**: It is **not thread-safe**. It does not synchronize its methods, meaning multiple threads can modify the `StringBuilder` simultaneously, potentially causing issues in multi-threaded environments.
+   - **Performance**: It is generally faster than `StringBuffer` because there is no overhead of synchronization. It is the best choice in single-threaded scenarios where high performance is needed.
+   - **Use Case**: Suitable for single-threaded applications where frequent string modification is required.
+
+   ```java
+   StringBuilder sb = new StringBuilder("Hello");
+   sb.append(" World");  // Modifies the same object
+   ```
+
+### Summary Table:
+
+| Feature         | **String**           | **StringBuffer**      | **StringBuilder**     |
+|-----------------|----------------------|-----------------------|-----------------------|
+| **Mutability**   | Immutable            | Mutable               | Mutable               |
+| **Thread Safety**| Thread-safe (due to immutability) | Thread-safe (synchronized methods) | Not thread-safe      |
+| **Performance**  | Slower for modifications | Slower due to synchronization | Faster (no synchronization) |
+| **Use Case**     | Constant or infrequent modifications | Multi-threaded environments with frequent modifications | Single-threaded environments with frequent modifications |
+
+In general, use `String` when you don't need to modify the string, `StringBuilder` when you need to modify it in a single-threaded environment, and `StringBuffer` when thread safety is required for modifying strings.
+
+Note : The mutable objects are objects whose value can be changed after initialization.
+
+Q7. Spring Boot Question
+How to enable debugging log in the spring boot application?
+=> To enable **debugging logs** in a Spring Boot application, you can follow these steps:
+
+### 1. **Using `application.properties` or `application.yml`**:
+   - Add the following in `application.properties`:
+     ```properties
+     logging.level.root=DEBUG
+     ```
+   - Or in `application.yml`:
+     ```yaml
+     logging:
+       level:
+         root: DEBUG
+     ```
+
+### 2. **Using Command Line**:
+   - You can enable debugging logs when running the application by passing the `--debug` flag:
+     ```bash
+     mvn spring-boot:run --debug
+     ```
+
+### 3. **Programmatically**:
+   - Add `@Slf4j` (Lombok) or use `LoggerFactory` in your code to log at the debug level.
+     ```java
+     @Slf4j
+     @SpringBootApplication
+     public class MyApp {
+         public static void main(String[] args) {
+             log.debug("Debug log message");
+             SpringApplication.run(MyApp.class, args);
+         }
+     }
+     ```
+
+This ensures detailed logs for troubleshooting or development purposes.
+
+Q8. SpringBoot Question
+What does the @SpringBootApplication annotation do internally?
+=> The `@SpringBootApplication` annotation in Spring Boot is a **convenience annotation** that combines three key annotations:
+
+1. **`@SpringBootConfiguration`**: Indicates that this class provides configuration for the application, similar to `@Configuration` in Spring.
+   
+2. **`@EnableAutoConfiguration`**: Enables Spring Boot’s auto-configuration mechanism, which automatically configures beans based on the classpath, environment, and other settings. This simplifies setup by eliminating the need for manual configuration.
+
+3. **`@ComponentScan`**: Enables component scanning, which allows Spring to automatically detect and register beans (e.g., `@Component`, `@Service`, `@Controller`) within the package where the class is located and its sub-packages.
+
+### Internally:
+- **Auto-Configuration**: Automatically configures the application based on dependencies.
+- **Component Scanning**: Scans and registers components.
+- **Configuration**: Acts as a configuration source.
+
+This makes `@SpringBootApplication` an all-in-one annotation for bootstrapping Spring Boot applications.
+
+
+Q9. MVC Question
+What is the root application context in Spring MVC? How is it loaded?
+=> 
+In Spring MVC, the **root application context** is the central container that holds shared beans and resources for the entire application. It is typically loaded by a listener such as `ContextLoaderListener` defined in the `web.xml` or programmatically via Java-based configuration. 
+The root context is usually used for application-wide concerns like service, data access, and configuration beans. It is distinct from the **web application context** specific to a particular `DispatcherServlet`, which handles request processing, controllers, and view resolution.
+The root context is loaded first when the web application starts, initializing beans and configurations that can be accessed by any part of the application. 
+It is globally accessible, and its beans can be injected into the web context. However, the reverse is not true—the web context beans cannot be directly
+ accessed by the root context.
+
+Q10. OOPS Question
+What is meant by Interface?
+=> 
+An **interface** in programming is a blueprint that defines a set of methods without providing their implementation. It specifies what a class must do but not how it should do it. In Java, for example, an interface is declared using the `interface` keyword and contains abstract methods, which any implementing class must define.
+
+Interfaces are a fundamental aspect of object-oriented programming as they allow for abstraction and polymorphism. By using interfaces, different classes can provide their own implementation for the methods, while the interface ensures a consistent contract. This promotes loose coupling, as classes interact with the interface rather than specific implementations.
+
+In addition to methods, interfaces in some languages can also include constants and default methods (with implementations). They are essential for 
+achieving multiple inheritance of behavior in languages like Java, where a class can implement multiple interfaces but can only extend one class.
+
+Q11. Difference Between Comparator and Comparable. What is fully qualified domain name?
+ What is the working principle for an ArrayList? How do you handle an exception? What is custom exception? What is the difference between checked and unchecked exception? If you close the database connectivity in try block and finally block as well then what is going to happen? Difference between abstract class and Interface.
+=> Here’s a concise explanation of all these concepts within 400 words:
+
+1. **Comparator vs. Comparable**:  
+   - `Comparable` interface is used to define a natural ordering of objects. It has a `compareTo()` method, which a class implements to provide default sorting.  
+   - `Comparator` is used when we want to sort objects in multiple ways. It has a `compare()` method, implemented outside the class to customize ordering.  
+   **Example**:
+   ```java
+   class Product implements Comparable<Product> {
+       int id;
+       public int compareTo(Product p) {
+           return this.id - p.id;
+       }
+   }
+
+   Comparator<Product> byName = (p1, p2) -> p1.name.compareTo(p2.name);
+   ```
+
+2. **Fully Qualified Domain Name (FQDN)**:  
+   An FQDN specifies the exact location of a domain within the DNS hierarchy. It includes the hostname and the domain, e.g., `www.example.com`.
+
+3. **ArrayList Working Principle**:  
+   `ArrayList` in Java is a resizable array. When an element is added, it checks if the internal array has space. If not, it creates a new array with increased capacity (usually 50% larger), copies the old elements, and adds the new one.
+
+4. **Handling an Exception**:  
+   In Java, exceptions are handled using `try-catch-finally` blocks. `try` contains code that might throw exceptions, `catch` handles them, and `finally` executes code regardless of an exception.
+   ```java
+   try {
+       int result = 10 / 0;
+   } catch (ArithmeticException e) {
+       System.out.println("Cannot divide by zero");
+   } finally {
+       System.out.println("Finally block executed");
+   }
+   ```
+
+5. **Custom Exception**:  
+   A custom exception is a user-defined exception extending `Exception` or `RuntimeException`.
+   ```java
+   class MyException extends Exception {
+       public MyException(String message) {
+           super(message);
+       }
+   }
+   ```
+
+6. **Checked vs. Unchecked Exception**:  
+   - **Checked exceptions** are checked at compile time (e.g., `IOException`).  
+   - **Unchecked exceptions** are checked at runtime (e.g., `NullPointerException`).
+
+7. **Closing DB in Try and Finally**:  
+   If you close database connectivity in both the `try` and `finally` blocks, it may result in a `SQLException` in `finally` because the connection will already be closed in `try`. Always close resources in the `finally` block or use try-with-resources.
+
+8. **Abstract Class vs. Interface**:  
+   - **Abstract class** can have both abstract methods (without implementation) and concrete methods. It is used when classes share common behavior.  
+   - **Interface** can only have abstract methods (until Java 8, where it can also have default methods). It is used to define a contract that classes must implement.
+
+   **Example**:
+   ```java
+   abstract class Animal {
+       abstract void sound();
+   }
+
+   interface Eater {
+       void eat();
+   }
+   ```
+
+
+ Q12. OOPS Question
+Explain the use of final keyword in variable, method and class.
+=> The `final` keyword in Java serves different purposes based on its usage:
+
+1. **Final Variable**: Once assigned, the value of a `final` variable cannot be changed. It becomes a constant.
+   ```java
+   final int x = 10;
+   ```
+
+2. **Final Method**: A method marked as `final` cannot be overridden by subclasses, ensuring the behavior remains unchanged.
+   ```java
+   final void show() { ... }
+   ```
+
+3. **Final Class**: A `final` class cannot be subclassed or extended, preventing inheritance.
+   ```java
+   final class Animal { ... }
+   ```
+
+Q13. Java Question
+What's the difference between User thread and Daemon thread?
+=> In Java, threads are classified into **User threads** and **Daemon threads**. Here's the difference between them:
+
+1. **User Thread**:
+   - A **user thread** is a thread that performs tasks defined by the application, such as handling user input or processing data.
+   - The JVM waits for all user threads to complete execution before shutting down.
+   - Example: Main thread or custom threads created by the user.
+
+2. **Daemon Thread**:
+   - A **daemon thread** provides background services, like garbage collection or monitoring tasks.
+   - The JVM does not wait for daemon threads to finish and shuts down as soon as all user threads complete.
+   - Example: Garbage Collector.
+
+   ```java
+   Thread t = new Thread();
+   t.setDaemon(true);  // Marks thread as daemon
+   ```
+
+Q14. MVC Question
+What are the different properties of MVC routes?
+=> 
+In Spring MVC, routes (or URL mappings) are configured to direct requests to specific controllers and actions. The key properties of MVC routes include:
+
+1. **Path**: Defines the URL pattern to match incoming requests. In Spring, it's specified using `@RequestMapping` (or newer annotations like `@GetMapping`, `@PostMapping`).
+   ```java
+   @GetMapping("/users/{id}")
+   ```
+
+2. **HTTP Method**: Routes can be restricted to specific HTTP methods like GET, POST, PUT, DELETE, etc.
+   ```java
+   @PostMapping("/submit")
+   ```
+
+3. **Parameters**: Routes can define required or optional parameters, such as query parameters or path variables.
+   ```java
+   @GetMapping("/user/{id}")
+   ```
+
+4. **Consumes/Produces**: Specifies the media types the route can consume (input) or produce (output), like `application/json`.
+   ```java
+   @PostMapping(value = "/submit", consumes = "application/json")
+   ```
+
+These properties define how routes respond to incoming web requests and map them to appropriate handler methods.
+
+
+Q15. Java Question
+What are some standard Java pre-defined functional interfaces?
+=> Java provides several standard pre-defined functional interfaces in the `java.util.function` package, which are commonly used with lambda expressions and method references. Key examples include:
+
+1. **`Predicate<T>`**: Represents a boolean-valued function of one argument. Useful for filtering and matching.
+   ```java
+   Predicate<String> isEmpty = String::isEmpty;
+   ```
+
+2. **`Function<T, R>`**: Represents a function that accepts one argument and produces a result.
+   ```java
+   Function<String, Integer> length = String::length;
+   ```
+
+3. **`Consumer<T>`**: Represents an operation that accepts a single input argument and returns no result. Typically used for side-effects.
+   ```java
+   Consumer<String> print = System.out::println;
+   ```
+
+4. **`Supplier<T>`**: Represents a supplier of results, providing a value with no input.
+   ```java
+   Supplier<String> getDefault = () -> "default";
+   ```
+
+5. **`BinaryOperator<T>`**: Represents a function that takes two arguments of the same type and produces a result of the same type.
+   ```java
+   BinaryOperator<Integer> add = Integer::sum;
+   ```
+
+Q16. OOPS Question
+What is Garbage collector in JAVA?
+=> In Java, the **Garbage Collector (GC)** is an automatic memory management mechanism that reclaims memory by removing objects that are no longer reachable or needed.
+ It helps to prevent memory leaks and manage heap space efficiently. The GC identifies and clears unused objects, freeing up resources for new objects. Java provides several
+  garbage collection algorithms (like G1, CMS, and Parallel GC) which can be selected based on the application's needs. Garbage collection runs
+   in the background and is triggered automatically by the JVM, although developers can also 
+request garbage collection manually using `System.gc()`.
+
+Q17. Spring Boot Question
+What is dependency Injection?
+=> **Dependency Injection (DI)** is a design pattern in Java used to achieve **Inversion of Control (IoC)**. It involves providing an object with its dependencies rather than having the object create them itself. This promotes loose coupling and enhances code flexibility and testability.
+
+In DI, dependencies are injected into a class through:
+
+1. **Constructor Injection**: Dependencies are provided via the class constructor.
+   ```java
+   public class Service {
+       private final Repository repository;
+
+       public Service(Repository repository) {
+           this.repository = repository;
+       }
+   }
+   ```
+
+2. **Setter Injection**: Dependencies are set via setter methods.
+   ```java
+   public class Service {
+       private Repository repository;
+
+       public void setRepository(Repository repository) {
+           this.repository = repository;
+       }
+   }
+   ```
+
+3. **Field Injection**: Dependencies are injected directly into fields (less preferred).
+   ```java
+   @Inject
+   private Repository repository;
+   ```
+
+Frameworks like Spring facilitate DI by managing the lifecycle and injection of dependencies.
+
+
+ioc:  
+**Inversion of Control (IoC)** is a design principle in software development where the control of object creation and lifecycle is shifted from the application code to a container or framework. This decouples components, making the system more modular and easier to manage.
+
+In IoC, the framework or container controls the flow of the application, rather than the application code directly controlling the creation and interaction of objects. This principle is often implemented through **Dependency Injection (DI)**, where dependencies are injected into components rather than the components creating or locating their dependencies themselves.
+
+For example, in Spring Framework:
+
+- **IoC Container**: Manages the lifecycle and configuration of application objects, injecting dependencies as needed.
+- **DI**: The mechanism through which the IoC container provides dependencies to objects.
+
+This approach enhances testability, maintainability, and flexibility in code.
+
+Q18. Java Question
+What are the features of a lambda expression?
+=> 
+Lambda expressions in Java offer several key features:
+
+1. **Concise Syntax**: Lambda expressions provide a compact syntax for defining anonymous functions. They simplify the code by reducing the boilerplate required for implementing functional interfaces.
+   ```java
+   (a, b) -> a + b
+   ```
+
+2. **Functional Interface Implementation**: Lambda expressions are used to implement functional interfaces, which are interfaces with a single abstract method. Examples include `Predicate`, `Function`, `Consumer`, and `Supplier`.
+
+3. **No Explicit Implementation**: They eliminate the need for anonymous class implementations, making the code easier to read and maintain.
+
+4. **Target Type Inference**: The type of the lambda expression is inferred from the context in which it is used, such as method parameters or variable declarations.
+
+5. **Capturing Variables**: Lambda expressions can capture and use variables from their enclosing scope. These captured variables must be effectively final.
+
+6. **Support for Functional Programming**: They facilitate functional programming features in Java, enabling operations like filtering, mapping, and reducing collections in a more expressive way.
+
+**Example**:
+```java
+// Traditional anonymous class
+Runnable r = new Runnable() {
+    @Override
+    public void run() {
+        System.out.println("Hello");
+    }
+};
+
+// Lambda expression
+Runnable r2 = () -> System.out.println("Hello");
+```
+
+
+Q19. Hibernate Question
+Can you explain what is lazy loading in hibernate?
+=> **Lazy loading** in Hibernate is a performance optimization technique where related entities are not loaded from the database until they are actually needed. Instead of fetching all associated data immediately (eager loading), Hibernate delays loading the data until the application specifically requests it. This reduces initial query execution time and memory usage. Lazy loading is typically implemented using proxies or placeholders for the entities. For example, if you have a `Customer` entity with a
+ collection of `Orders`, the `Orders` collection will only be fetched from the database when you access it for the first time.
+
+Q20. Java Question
+How ConcurrentHashMap works in Java
+=> 
+`ConcurrentHashMap` in Java is a thread-safe collection designed for concurrent access and modifications. It works by dividing the map into segments or bins, allowing multiple threads to work on different segments simultaneously without blocking each other. 
+
+Here’s how it operates:
+
+1. **Segmentation**: Internally, the map is divided into multiple segments (buckets) with a specific concurrency level. Each segment is independently locked, so threads accessing different segments do not interfere with each other.
+
+2. **Locking Mechanism**: For read operations, `ConcurrentHashMap` uses lock-free techniques to ensure fast access. For write operations, it locks only the affected segment, reducing contention and increasing performance compared to a fully synchronized map.
+
+3. **Fine-Grained Synchronization**: By locking only a portion of the map, `ConcurrentHashMap` achieves high concurrency and scalability, allowing multiple 
+threads to add, remove, and modify entries with minimal performance impact.
+
+
+
+Q21. MVC Question
+How is the routing carried out in MVC?
+
+=> In Java's MVC (Model-View-Controller) architecture, routing is typically managed by the **Controller**. The controller handles 
+user input (like HTTP requests) and determines which part of the system to interact with. Frameworks like Spring MVC or Struts use 
+routing annotations like `@RequestMapping` or `@GetMapping` to map URLs to specific controller methods. When a request is received,
+ the controller processes it, interacts with the model for data manipulation, and returns the appropriate view 
+ (often a JSP or Thymeleaf template) for
+ rendering the response back to the user.
+
+Q22. What is java and what is inheritance and what is oops concepts and what is method
+=> 
+Java is a high-level, object-oriented programming language known for its platform independence, allowing code to run on any system with a Java Virtual Machine (JVM). It follows the principles of Object-Oriented Programming (OOP), which are key to its structure.
+
+**Inheritance** is an OOP concept where one class (subclass) inherits properties and behaviors (methods) from another class (superclass), promoting code reuse and hierarchy.
+
+OOP has four core principles:
+1. **Encapsulation**: Bundling data (variables) and methods into a single unit (class), restricting access to certain details.
+2. **Inheritance**: Enables new classes to inherit features from existing ones.
+3. **Polymorphism**: Objects can take multiple forms, allowing the same operation to behave differently on different objects.
+4. **Abstraction**: Hides complex implementation details, exposing only the necessary parts.
+
+A **method** is a function defined inside a class that performs specific actions on the class's data or interacts with external data.
+
+Q23. Hibernate Question
+What is hibernate caching?
+=> Java is a high-level, object-oriented programming language known for its platform independence, allowing code to run on any system with a Java Virtual Machine (JVM). It follows the principles of Object-Oriented Programming (OOP), which are key to its structure.
+
+**Inheritance** is an OOP concept where one class (subclass) inherits properties and behaviors (methods) from another class (superclass), promoting code reuse and hierarchy.
+
+OOP has four core principles:
+1. **Encapsulation**: Bundling data (variables) and methods into a single unit (class), restricting access to certain details.
+2. **Inheritance**: Enables new classes to inherit features from existing ones.
+3. **Polymorphism**: Objects can take multiple forms, allowing the same operation to behave differently on different objects.
+4. **Abstraction**: Hides complex implementation details, exposing only the necessary parts.
+
+A **method** is a function defined inside a class that performs specific actions on the class's data or interacts with external data.
+
+Q24. What is polymorphism in both overloading and overriding way?
+=> 
+**Polymorphism** in Java allows objects to take multiple forms. It comes in two types: **compile-time (method overloading)** and **runtime (method overriding)**.
+
+1. **Method Overloading (Compile-time Polymorphism)**: 
+   - Occurs when multiple methods in the same class have the same name but different parameter lists (either by type, number, or order). The method that is called is determined at compile time based on the method signature.
+   - Example: 
+     ```java
+     class Calculator {
+         int add(int a, int b) { return a + b; }
+         double add(double a, double b) { return a + b; }
+     }
+     ```
+
+2. **Method Overriding (Runtime Polymorphism)**: 
+   - Happens when a subclass provides a specific implementation of a method that is already defined in its superclass. The method call is resolved at runtime based on the object's actual type.
+   - Example:
+     ```java
+     class Animal { void sound() { System.out.println("Generic sound"); } }
+     class Dog extends Animal { void sound() { System.out.println("Bark"); } }
+
+     ```
+Q25. Technical Question
+What do you know about the Secure Socket Layer (SSL) ?
+=> Secure Socket Layer (SSL) is a security protocol that provides encrypted communication between a client and a server 
+over the internet. In Java, SSL is implemented using the **JSSE (Java Secure Socket Extension)** API. SSL ensures that data 
+transmitted remains private, and helps verify the identity of the communicating parties. It works through a handshake process, 
+establishing a secure connection by exchanging encryption keys. SSL has been largely replaced by **TLS (Transport Layer Security)**,
+ but the term "SSL" is still commonly used. Java developers often use **SSLContext** and **SSLSocketFactory**
+ classes for managing SSL connections.
+
+
+Q26. Hibernate Question
+When is merge() method of the hibernate session useful ?
+=> In Hibernate, the `merge()` method is useful when you need to update an existing detached entity (an entity that is no longer associated with 
+an active Hibernate session). It copies the state of the given detached entity into a persistent entity within the current session. 
+If the entity doesn't exist in the session or database, Hibernate fetches or creates it, then updates it.
+Unlike `update()`, `merge()` doesn’t throw an exception if the entity is already persistent in the session. It is 
+often used in scenarios where changes are made to detached entities and you want
+ to re-sync them with the database.
+
+Q27. Spring Boot Question
+What Are the Basic Annotations that Spring Boot Offers?
+=> Spring Boot offers several core annotations to simplify development:
+
+1. **@SpringBootApplication**: Combines `@Configuration`, `@EnableAutoConfiguration`, and `@ComponentScan`, marking the main class for configuration and bootstrapping.
+2. **@RestController**: Combines `@Controller` and `@ResponseBody`, simplifying the creation of RESTful web services.
+3. **@RequestMapping**: Maps HTTP requests to handler methods.
+4. **@Autowired**: Injects dependencies automatically.
+5. **@Service**, **@Repository**, **@Component**: Mark classes as Spring-managed beans for business logic, data access, or general purposes.
+6. **@Entity**: Marks a class as a JPA entity for database mapping.
+
+These annotations streamline configuration and dependency management in Spring Boot.
+
+note : 
+A RESTful web service in Java is an application that follows the principles of **Representational State Transfer (REST)** architecture,
+ enabling communication between systems over the web using HTTP. It leverages standard HTTP methods—**GET**, **POST**, **PUT**, **DELETE**—to
+  perform CRUD (Create, Read, Update, Delete) operations.
+
+In Java, RESTful services are typically built using frameworks like **Spring Boot** or **JAX-RS**. These services return data in formats 
+like JSON or XML and are stateless, meaning each request from a client contains all necessary information to process the
+ request without relying on server-side session state.
+
+Q28. OOPS Question
+Difference between Abstract class and Interface.
+=> In Java, both **abstract classes** and **interfaces** define abstract types, but they have key differences:
+
+1. **Abstract Class**:
+   - Can have both abstract and concrete (implemented) methods.
+   - Allows instance variables and constructors.
+   - A class can extend only one abstract class.
+   
+2. **Interface**:
+   - Only contains abstract methods (Java 8+ allows default and static methods).
+   - No instance variables, but can have constants.
+   - A class can implement multiple interfaces.
+   
+**Abstract classes** are used for shared base functionality, while **interfaces** define contracts for behavior that any implementing class 
+must follow.
+
+Q29. Technical Question
+How MVC works in Spring?
+=> In Spring Framework, the MVC (Model-View-Controller) pattern is implemented to separate concerns and streamline web application development:
+
+1. **Model**: Represents the data and business logic. In Spring, this often includes JavaBeans or entity classes and services that interact with the database.
+
+2. **View**: Handles the presentation layer and displays data to the user. Spring integrates with various view technologies such as JSP, Thymeleaf, or FreeMarker to render HTML responses.
+
+3. **Controller**: Manages user input and interactions. It processes incoming requests, updates the model, and selects the view for rendering. In Spring, controllers are typically annotated with `@Controller` or `@RestController`, and methods are mapped to specific URL patterns using `@RequestMapping` or other mapping annotations.
+
+Spring MVC uses **DispatcherServlet** as the front controller to handle all incoming requests, delegate them to appropriate handlers, 
+and manage the response rendering.
+
+Q30. Technical Question
+Explain in brief the role of different MVC components?
+=> 
+In MVC (Model-View-Controller):
+
+1. **Model**: Represents the data and business logic of the application. It interacts with the database and encapsulates data operations. Changes in the model often trigger updates in the view.
+
+2. **View**: Responsible for rendering the user interface and displaying data from the model. It presents information to the user and receives user input to be processed by the controller.
+
+3. **Controller**: Handles user input and updates the model based on that input. It acts as an intermediary between the model and the view, processing requests, managing data, and deciding which view to render.
+
+Each component focuses on its specific role, promoting a clean separation of concerns in the application architecture.
+
+Q31. OOPS Question
+How does an exception propagate in the code?
+=> 
+In Java, when an exception is thrown, it propagates through the call stack. Here's how it works:
+
+1. **Exception Throwing**: When a method encounters an exception, it throws it using the `throw` keyword.
+
+2. **Propagation**: The exception starts to propagate up the call stack, moving from the method where it was thrown to its caller.
+
+3. **Handling**: If a method does not handle the exception using a `try-catch` block, it continues to propagate to the next higher method in the call stack.
+
+4. **Termination**: If no method handles the exception, it reaches the JVM, which typically prints a stack trace and terminates the program.
+
+This propagation allows exceptions to be handled at an appropriate level in the application.
+
+Q32. Hibernate Question
+How do you create an immutable class in hibernate?
+=> To create an immutable class in Hibernate:
+
+1. **Define the Class**: Make the class `final` to prevent subclassing.
+   
+2. **Use Final Fields**: Mark fields as `private` and `final` to ensure they are not modified after initialization.
+
+3. **No Setter Methods**: Do not provide setter methods to prevent changes to the fields.
+
+4. **Constructor Initialization**: Initialize all fields through a constructor, ensuring all required data is set upon object creation.
+
+5. **Provide Getter Methods**: Only provide getter methods to access field values.
+
+Example:
+```java
+@Entity
+public final class ImmutableEntity {
+    @Id
+    private final Long id;
+    private final String name;
+
+    public ImmutableEntity(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public Long getId() { return id; }
+    public String getName() { return name; }
+}
+```
+This ensures that once an instance is created, its state cannot be altered.
+
+Q33. Is java object oriented language or not ?
+=> Yes, Java is an object-oriented programming (OOP) language. It adheres to the principles of OOP, including:
+
+1. **Encapsulation**: Bundling data and methods in classes, and restricting access with access modifiers.
+2. **Inheritance**: Allowing classes to inherit properties and behaviors from other classes.
+3. **Polymorphism**: Enabling objects to take multiple forms through method overloading and overriding.
+4. **Abstraction**: Hiding complex implementation details and showing only necessary features.
+
+Java's class-based structure and emphasis on these principles make it a quintessential object-oriented language.
+
+Q34. Actuator,what is dependency injection, how to change imbeded server in spring boot,W.A.P permutation of string.
+=> 1. **Actuator**: In Spring Boot, Actuator provides production-ready features like monitoring and managing applications through endpoints such as `/health` and `/metrics`.
+
+2. **Dependency Injection**: It's a design pattern where dependencies (objects) are injected into a class rather than the class creating them. In Spring, this is typically done using `@Autowired`, `@Inject`, or constructor injection.
+
+3. **Changing Embedded Server**: To change the embedded server in Spring Boot, modify the `application.properties` file. For example, to switch to Jetty, add `spring.main.web-application-type=reactive` and include Jetty dependencies in `pom.xml` or `build.gradle`.
+
+4. **Permutation of String**: Write a program to generate all permutations of a string using recursion. For example:
+   ```java
+   public class Permutations {
+       public static void permute(String str, String ans) {
+           if (str.isEmpty()) {
+               System.out.println(ans);
+               return;
+           }
+           for (int i = 0; i < str.length(); i++) {
+               permute(str.substring(0, i) + str.substring(i + 1), ans + str.charAt(i));
+           }
+       }
+       public static void main(String[] args) {
+           permute("ABC", "");
+       }
+   }
+   ```
+   code: 
+   public class Permutations {
+    // Method to generate permutations
+    public static void permute(String str, String ans) {
+        // Base case: if the input string is empty
+        if (str.isEmpty()) {
+            System.out.println(ans);
+            return;
+        }
+        // Recursive case: loop through the string and generate permutations
+        for (int i = 0; i < str.length(); i++) {
+            // Take the current character and form a new string without it
+            String newStr = str.substring(0, i) + str.substring(i + 1);
+            // Append the current character to the result and recurse
+            permute(newStr, ans + str.charAt(i));
+        }
+    }
+
+    public static void main(String[] args) {
+        // Example usage
+        permute("ABC", "");
+    }
+}
+
+Q35. Java Question
+Difference b/w Runnable Interface and Callable Interface
+=>In Java:
+
+1. **Runnable Interface**:
+   - Used for tasks that do not return a result.
+   - Implements the `run()` method with no return value.
+   - Cannot throw checked exceptions.
+
+2. **Callable Interface**:
+   - Used for tasks that return a result and can throw exceptions.
+   - Implements the `call()` method which returns a value and can throw checked exceptions.
+   - Typically used with `Future` to retrieve the result.
+
+**Runnable** is suited for tasks where you don’t need a result or exception handling, while **Callable** is used when you need to get a result or handle exceptions.
+
+Q36. DBMS Question ****
+What is Self-Join and Cross-Join ?
+=> In SQL:
+
+1. **Self-Join**:
+   - A self-join is a query where a table is joined with itself.
+   - It is used to compare rows within the same table.
+   - Typically involves using table aliases to differentiate between the instances of the table.
+   - Example: Finding employees who have the same manager.
+   ```sql
+   SELECT e1.name AS Employee, e2.name AS Manager
+   FROM employees e1
+   JOIN employees e2 ON e1.manager_id = e2.id;
+   ```
+
+2. **Cross-Join**:
+   - A cross-join returns the Cartesian product of two tables.
+   - It combines each row of the first table with each row of the second table.
+   - Example: Combining all products with all possible sales channels.
+   ```sql
+   SELECT * FROM products
+   CROSS JOIN sales_channels;
+   ```
+
+Q37. Java Question
+What is thread starvation?
+=> **Thread starvation** occurs in Java when a thread is perpetually denied access to resources or CPU time due to other threads continuously occupying those resources. This can happen in scenarios where thread scheduling or resource allocation is biased, such as:
+
+- **Priority-based Scheduling**: Lower-priority threads might be starved if higher-priority threads dominate CPU time.
+- **Lock Contention**: Threads might be unable to acquire locks if they are continuously contested by other threads holding the locks.
+
+Thread starvation results in performance issues and unresponsive threads. Proper resource management and thread scheduling are essential to prevent starvation.
+
+Q38. Hibernate Question
+Explain brief about Session interface used in hibernate?
+=> In Hibernate, the `Session` interface is the primary interface for interacting with the database. It provides methods to:
+
+- **Create, read, update, and delete** (CRUD) entities using methods like `save()`, `update()`, `delete()`, and `get()`.
+- **Manage transactions**: Begin, commit, or roll back transactions using methods like `beginTransaction()`, `commit()`, and `rollback()`.
+- **Query the database**: Execute HQL (Hibernate Query Language) queries using methods like `createQuery()` and `createCriteria()`.
+- **Manage the persistence context**: Handle entity states and manage cache.
+
+A `Session` is typically used within a transaction to ensure consistent and reliable data operations.
+
+Q39. What is java and what is oops concepts and what is inheritance and what is method
+=> **Java** is a high-level, object-oriented programming language known for its portability across platforms via the Java Virtual Machine (JVM). 
+
+**OOP Concepts** in Java include:
+- **Encapsulation**: Bundling data and methods in classes, hiding internal details.
+- **Inheritance**: Allowing one class to inherit fields and methods from another class.
+- **Polymorphism**: Enabling objects to be treated as instances of their parent class, allowing method overloading and overriding.
+- **Abstraction**: Hiding complex implementation details and showing only essential features.
+
+A **method** in Java is a block of code that performs a specific task, defined within a class, and can return a value or perform actions.
+
+Q40. What is java and what is method and what is oops concepts and what is method
+=> same a above.
+
+Q41. MVC Question
+Difference b/w View and Partial View
+=> 
+In Java web development using frameworks like Spring MVC, a `View` and a `Partial View` have distinct roles:
+
+- **View**: Represents the complete page rendered by the server, typically including all HTML, CSS, and JavaScript. It handles the full response for a particular request.
+
+- **Partial View**: Represents a segment of a page that can be dynamically updated or included within a larger page. It is used to update specific sections of a page without reloading the entire view.
+
+The key difference lies in their scope: a `View` is for entire pages, while a `Partial View` is for reusable components or segments within pages.
+
+Q42. Where should use for constructor injection?
+=> 
+Constructor injection should be used when you want to ensure that dependencies are provided at the time of object
+ creation, making them immutable and guaranteeing that the object is always in a valid state. It is suitable for mandatory 
+ dependencies that are essential for the object's operation. This approach promotes clear dependencies, supports immutability, and 
+ aids in testing by facilitating easier dependency injection through mock objects. It is ideal for scenarios where you want to enforce
+  the requirement of certain dependencies and ensure they are initialized before any methods
+ are called on the object.
+
+Q43. What are aggregate and terminal operations in java8 streams
+=> In Java 8 Streams:
+
+- **Aggregate Operations**: These operations perform a reduction or transformation on elements. Examples include `collect()`, `reduce()`, and `count()`. They produce a result from a stream. For example:
+  ```java
+  List<String> names = Arrays.asList("Alice", "Bob", "Charlie");
+  long count = names.stream().count(); // Aggregate operation
+  ```
+
+- **Terminal Operations**: These operations trigger the processing of the stream and produce a result or side effect. Examples include `forEach()`, `collect()`, and `reduce()`. They mark the end of the stream pipeline. For example:
+  ```java
+  names.stream().forEach(System.out::println); // Terminal operation
+  ```
+
+`collect()` can serve both as an aggregate and terminal operation, depending on its context.
+
+Q44. What is java and what is method and what is oops concepts
+=> already mentioned.
+
+Q45. Java Question
+Difference between save and saveorupdate
+=> In Hibernate, `save` and `saveOrUpdate` have different purposes:
+
+- **`save`**: This method inserts a new entity into the database. If the entity already exists (based on its identifier), it will throw an exception. It is used when you are sure the entity is new and not present in the database.
+
+- **`saveOrUpdate`**: This method either inserts a new entity if it is not present in the database or updates an existing one if it already exists. It is useful when the entity’s state might change, and you want Hibernate to handle both cases automatically.
+
+```java
+session.save(newEntity); // Inserts newEntity
+session.saveOrUpdate(existingEntity); // Updates if exists, inserts if not
+```
+Q46. Java Question
+Differentiate between .ear, .jar and .war files.
+=> 
+In Java, `.ear`, `.jar`, and `.war` files serve different purposes:
+
+- **`.jar` (Java Archive)**: Contains Java class files, libraries, and metadata. It’s used for packaging Java classes and libraries into a single file, typically for a standalone application or library.
+
+- **`.war` (Web Application Archive)**: Contains a web application’s components, including `.jsp`, `.html`, `.class` files, and configuration files (like `web.xml`). It’s used for deploying web applications to a web server.
+
+- **`.ear` (Enterprise Archive)**: Bundles one or more `.jar` and `.war` files, along with additional configuration files. It’s used for deploying enterprise applications that may consist of multiple modules, like EJBs and web components.
+
+Each file type is used for different deployment contexts in Java EE applications.
+
+Q47. DBMS Question
+Explain the concept of ACID properties in DBMS.
+
+=> ACID properties in a Database Management System (DBMS) ensure reliable transaction processing:
+
+- **Atomicity**: Ensures that a transaction is all-or-nothing; if any part fails, the entire transaction is rolled back.
+- **Consistency**: Guarantees that a transaction brings the database from one valid state to another, maintaining database integrity.
+- **Isolation**: Ensures that transactions occur independently, without interference. Intermediate states are not visible to other transactions.
+- **Durability**: Guarantees that once a transaction is committed, its changes are permanent, even in the case of system failures.
+
+These properties ensure data integrity and reliability in multi-user database environments.
+
+Q48. What would you rate yourself in java on the scale of 1 to 10?
+=> 7 
+
+Q49. OS Question
+Explain any 5 essential UNIX commands .
+=> 
+Here are five essential UNIX commands:
+
+1. **`ls`**: Lists files and directories in the current directory. Options like `-l` provide detailed information.
+   ```bash
+   ls -l
+   ```
+
+2. **`cd`**: Changes the current directory.
+   ```bash
+   cd /path/to/directory
+   ```
+
+3. **`cp`**: Copies files or directories. The `-r` option is used for directories.
+   ```bash
+   cp file1.txt /path/to/destination/
+   ```
+
+4. **`mv`**: Moves or renames files and directories.
+   ```bash
+   mv oldname.txt newname.txt
+   ```
+
+5. **`rm`**: Removes files or directories. Use `-r` for directories.
+   ```bash
+   rm file1.txt
+   ```
+
+Q50. String s1=new String(null); what is the answer
+=> In Java, `String s1 = new String(null);` will result in a compilation error. The `String` constructor does not accept `null` as a 
+valid argument. The `String` class constructor expects either a `String`, `char[]`, `byte[]`, or other valid types, but not `null`.
+
+If you try to pass `null` to the constructor, the compiler will not recognize it as a valid argument and will throw an error
+ indicating that no suitable constructor exists for the given argument.
+
+
+Q51. Write a functional interface. Refer it to a Lamda Expression. Show it practically while explaining each step
+=> Here's a functional interface and how to use it with a lambda expression in Java:
+
+```java
+// Define a functional interface
+@FunctionalInterface
+interface Greet {
+    void sayHello(String name);
+}
+
+public class Main {
+    public static void main(String[] args) {
+        // Implement the interface using a lambda expression
+        Greet greet = (name) -> System.out.println("Hello, " + name + "!");
+
+        // Call the method
+        greet.sayHello("Alice");
+    }
+}
+```
+
+**Explanation:**
+1. **Define Interface**: `Greet` is a functional interface with one abstract method `sayHello`.
+2. **Lambda Expression**: `(name) -> System.out.println("Hello, " + name + "!")` provides an implementation.
+3. **Method Call**: `greet.sayHello("Alice")` invokes the lambda expression, printing "Hello, Alice!".
+
+Q52. What is HashMap? While Interating through it is it mutable?
+=>A `HashMap` in Java is a collection that stores key-value pairs, allowing fast retrieval based on keys. It implements the `Map` interface and uses a hash table for storage.
+
+When iterating through a `HashMap` using methods like `entrySet()`, `keySet()`, or `values()`, it is generally mutable.
+ This means that if you modify the map (e.g., add or remove entries) during iteration, it can lead to `ConcurrentModificationException`. 
+ To avoid this, use an iterator's `remove()` method for safe removal, or work with a separate copy of the map if 
+extensive modifications are needed.
+
+Q53. what is collection and collections, what is collection framework?
+=> In Java:
+
+- **`Collection`**: An interface in the Java Collections Framework that represents a group of objects (elements). It is the root of the collection hierarchy and includes interfaces like `List`, `Set`, and `Queue`.
+
+- **`Collections`**: A utility class that provides static methods to operate on or return collections, such as sorting and searching. It contains methods like `sort()`, `reverse()`, and `shuffle()`.
+
+- **Collection Framework**: A unified architecture for storing and manipulating collections of objects. 
+It includes interfaces (e.g., `Collection`, `List`, `Set`), implementations (e.g., `ArrayList`, `HashSet`), and utility classes (`Collections`).
+
+Q54. What are the various annotations used in SpringBoot (explain)
+=> Spring Boot uses various annotations to simplify application development:
+
+- **`@SpringBootApplication`**: Combines `@Configuration`, `@EnableAutoConfiguration`, and `@ComponentScan` to configure and start the application.
+
+- **`@RestController`**: Marks a class as a RESTful controller, combining `@Controller` and `@ResponseBody`.
+
+- **`@RequestMapping`**: Maps HTTP requests to handler methods. Variants like `@GetMapping`, `@PostMapping` are used for specific HTTP methods.
+
+- **`@Autowired`**: Injects dependencies into a class automatically.
+
+- **`@Service`, `@Repository`, `@Component`**: Marks classes as Spring-managed components with specific roles (service layer, data access, general component).
+
+These annotations streamline configuration and wiring of components.
+
+Q55. What are Java Generics, Collections, wrapper classes?
+=> - **Java Generics**: Allow you to define classes, interfaces, and methods with type parameters, providing compile-time type safety and reducing runtime errors. For example, `List<String>` specifies that the list will hold `String` objects.
+
+- **Collections**: Refers to the Java Collection Framework, a group of interfaces and classes (e.g., `List`, `Set`, `Map`) used to store, retrieve, and manipulate groups of objects.
+
+- **Wrapper Classes**: Provide object representation for primitive data types (`int`, `char`, `boolean`, etc.). Each primitive type has a corresponding wrapper class (`Integer`, `Character`, `Boolean`). They enable primitives to be used as objects in collections and other contexts.
+
+note: 
+In Java, converting between objects and primitives is known as **boxing** and **unboxing**:
+
+- **Boxing**: Converting a primitive type to its corresponding wrapper class object. For example:
+  ```java
+  int primitive = 10;
+  Integer boxed = Integer.valueOf(primitive); // Boxing
+  ```
+
+- **Unboxing**: Converting a wrapper class object back to its primitive type. For example:
+  ```java
+  Integer boxed = 10;
+  int primitive = boxed.intValue(); // Unboxing
+  ```
+
+Java automatically handles boxing and unboxing through autoboxing and unboxing features, so explicit conversion is often unnecessary. For example:
+```java
+Integer boxed = 10;  // Autoboxing
+int primitive = boxed; // Autounboxing
+```
+
+Q56. Explain Final,Finally,Finalize() in Java?
+=> In Java:
+
+- **`final`**: A keyword used to declare constants, prevent method overriding, or inheritance. For example, `final int MAX_VALUE = 100;` makes `MAX_VALUE` a constant, `final void method()` prevents method overriding, and `final class MyClass` prevents inheritance.
+
+- **`finally`**: A block used in exception handling, ensuring code executes after `try` and `catch` blocks, regardless of whether an exception occurs. It’s typically used for cleanup operations:
+  ```java
+  try { /* code */ } catch (Exception e) { /* handle */ } finally { /* cleanup */ }
+  ```
+
+- **`finalize()`**: A method in `Object` class called by the garbage collector before an object is reclaimed. It’s used for cleanup but is generally not recommended for resource management due to unpredictability.
+
+Q58. What is difference between Java and C, explain features of java
+=> **Java vs. C:**
+
+- **Java** is an object-oriented, platform-independent language with automatic memory management (garbage collection), built-in concurrency, and strong standard libraries. It runs on the Java Virtual Machine (JVM), making it portable across platforms.
+
+- **C** is a procedural language with direct memory management (manual allocation and deallocation), lower-level operations, and less built-in abstraction. It compiles directly to machine code and is often used for system-level programming.
+
+**Features of Java:**
+1. **Object-Oriented**: Supports classes and objects.
+2. **Platform-Independent**: Runs on JVM.
+3. **Automatic Memory Management**: Includes garbage collection.
+4. **Built-in Concurrency**: Supports multi-threading.
+5. **Robust**: Strong type-checking and exception handling.
+
+Q59. OS Question
+Explain Piping in Unix/Linux
+=> Piping in Unix/Linux is a technique to direct the output of one command into another command as input, allowing for efficient data processing. It is done using the `|` operator. For example:
+
+```bash
+ls -l | grep "txt"
+```
+
+In this example, `ls -l` lists files and directories, and its output is passed to `grep "txt"`, which filters and displays 
+only lines containing "txt". Piping allows chaining commands to perform complex tasks by combining simple utilities, enhancing 
+flexibility and efficiency in command-line operations.
+
+Q60. tell me about class loader in java and how it works? Types of operators in java. etc
+=> In Java, a class loader is a part of the Java Runtime Environment (JRE) responsible for loading classes into memory. It works in three main steps: loading, linking, and initializing. Java has different class loaders, including the Bootstrap ClassLoader, Platform ClassLoader, and Application ClassLoader. Operators in Java are categorized into:
+
+1. Arithmetic (e.g., +, -, *, /)
+2. Relational (e.g., ==, !=, >, <)
+3. Logical (e.g., &&, ||, !)
+4. Bitwise (e.g., &, |, ^)
+5. Assignment (e.g., =, +=, -=)
+6. Unary (e.g., +, -, ++, --)
+
+Q61. What is the jQuery ajax GET request syntax?
+=> The syntax for a jQuery AJAX GET request is:
+
+```javascript
+$.ajax({
+    url: 'your-url-here',
+    type: 'GET',
+    dataType: 'json', // or 'text', 'html', etc.
+    success: function(response) {
+        // Handle success
+        console.log(response);
+    },
+    error: function(xhr, status, error) {
+        // Handle error
+        console.error(error);
+    }
+});
+```
+
+Alternatively, you can use the shorthand `.get()` method:
+
+```javascript
+$.get('your-url-here', function(response) {
+    // Handle success
+    console.log(response);
+}).fail(function(xhr, status, error) {
+    // Handle error
+    console.error(error);
+});
+```
+Q62. Find the duplicate element in a given array using Java 8 features.
+=> To find duplicate elements in an array using Java 8 features, you can use streams and a `Set`. Here's a concise example:
+
+```java
+import java.util.Arrays;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.stream.Collectors;
+
+public class FindDuplicates {
+    public static void main(String[] args) {
+        int[] array = {1, 2, 3, 4, 5, 3, 6, 7, 8, 1};
+
+        Set<Integer> duplicates = Arrays.stream(array)
+            .boxed()
+            .collect(Collectors.groupingBy(e -> e, Collectors.counting()))
+            .entrySet().stream()
+            .filter(entry -> entry.getValue() > 1)
+            .map(entry -> entry.getKey())
+            .collect(Collectors.toSet());
+
+        System.out.println("Duplicates: " + duplicates);
+    }
+}
+```
+
+### Explanation:
+1. **`Arrays.stream(array)`**: Converts the array to a stream.
+2. **`.boxed()`**: Converts `int` to `Integer`.
+3. **`.collect(Collectors.groupingBy(...))`**: Groups elements by value and counts occurrences.
+4. **`.entrySet().stream()`**: Streams the map entries.
+5. **`.filter(entry -> entry.getValue() > 1)`**: Filters entries where the count is greater than 1 (duplicates).
+6. **`.map(entry -> entry.getKey())`**: Extracts the keys (duplicate elements).
+7. **`.collect(Collectors.toSet())`**: Collects the results into a `Set`.
+
+This will output the duplicate elements found in the array.
+
+
+Q63. What is Functional Interface? What is Flat Map? What is Method Reference? What is stream API
+=> **Functional Interface**: An interface with a single abstract method (SAM), used in lambda expressions and method references. Example: `@FunctionalInterface interface MyFunc { void apply(); }`.
+
+**FlatMap**: A method in streams that transforms each element into a stream and then flattens the results into a single stream. Example: `stream.flatMap(x -> Stream.of(x, x + 1))`.
+
+**Method Reference**: A shorthand notation to call a method using `ClassName::methodName`. Example: `List<String> list = Arrays.asList("a", "b"); list.forEach(System.out::println);`.
+
+**Stream API**: A Java 8 feature that allows functional-style operations on collections, such as filtering, mapping, and reducing data in a declarative way.
+Q64. have you worked on spring security then explain ?
+=> Yes, I can explain Spring Security. It's a framework for securing Java applications, providing authentication and authorization. 
+It integrates with Spring applications to manage user authentication, authorize access to resources, and handle common security
+ tasks like session management and protection against attacks (e.g., CSRF, XSS). It supports various authentication mechanisms 
+ (e.g., form-based, JWT, OAuth2) and can be customized via configuration in XML or Java classes. Spring Security uses filters
+  and interceptors to apply security rules and integrates with Spring’s dependency
+ injection to manage security components efficiently.
+
+Q65. Prerequisites: Payment gateway If your order fails and payment has been deducted, how do you manage this situation.
+=> If a payment fails but the amount is deducted, follow these steps:
+
+1. **Verify Transaction**: Check with the payment gateway for the transaction status.
+2. **Notify User**: Inform the user of the issue and assure them that it’s being addressed.
+3. **Refund Process**: Initiate a refund through the payment gateway or backend system.
+4. **Update System**: Adjust your order status and inventory as needed.
+5. **Audit Logs**: Review logs for errors or issues in the payment process.
+6. **Customer Support**: Provide support for any additional questions or concerns the user may have.
+
+Ensure communication is clear and timely to maintain trust.
+
+Q66. What are the different bean scopes in Spring
+=> In Spring, beans can have different scopes:
+
+1. **Singleton**: One instance per Spring container. Default scope.
+2. **Prototype**: A new instance is created each time a bean is requested.
+3. **Request**: A new instance is created for each HTTP request. Applicable in web applications.
+4. **Session**: A new instance is created for each HTTP session. Applicable in web applications.
+5. **Application**: A single instance per ServletContext. Useful in web applications to share beans across sessions.
+
+These scopes determine the lifecycle and visibility of beans within the application context.
+
+Q67. WAJP to establish a JDBC connection and fetch results from a database and print those results.
+=> import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class JdbcExample {
+    public static void main(String[] args) {
+        // Database URL, username, and password
+        String url = "jdbc:mysql://localhost:3306/your_database";
+        String username = "your_username";
+        String password = "your_password";
+
+        // SQL query
+        String query = "SELECT * FROM your_table";
+
+        try {
+            // Load JDBC driver (for MySQL)
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            // Establish the connection
+            Connection connection = DriverManager.getConnection(url, username, password);
+
+            // Create a statement
+            Statement statement = connection.createStatement();
+
+            // Execute the query
+            ResultSet resultSet = statement.executeQuery(query);
+
+            // Process the result set
+            while (resultSet.next()) {
+                // Assuming you have a column named "name" in your table
+                String name = resultSet.getString("name");
+                System.out.println("Name: " + name);
+            }
+
+            // Close resources
+            resultSet.close();
+            statement.close();
+            connection.close();
+
+        } catch (ClassNotFoundException e) {
+            System.out.println("JDBC Driver not found.");
+            e.printStackTrace();
+        } catch (SQLException e) {
+            System.out.println("SQL Exception occurred.");
+            e.printStackTrace();
+        }
+    }
+}
+
+
+Q68. What is static variables?
+=> In Java, static variables are class-level variables shared among all instances of the class. They are defined using the `static` keyword and belong to the class itself rather than any specific instance. This means they are initialized only once when the class is loaded and maintain a single copy throughout the application's lifecycle. Static variables can be accessed directly using the class name or via instances, but typically accessed through the class name. Example:
+
+```java
+public class MyClass {
+    public static int staticVar = 0;
+}
+```
+
+In this example, `staticVar` is shared by all instances of `MyClass`.
+
+Q69. How can you write custom exception in Java?
+=> To write a custom exception in Java, you create a new class that extends `Exception` (for checked exceptions) or `RuntimeException` (for unchecked exceptions). Here's an example:
+
+```java
+public class CustomException extends Exception {
+    public CustomException(String message) {
+        super(message);
+    }
+}
+```
+
+You can then throw your custom exception using:
+
+```java
+if (someCondition) {
+    throw new CustomException("Custom error message");
+}
+```
+
+This allows you to define application-specific error handling by creating meaningful exceptions tailored to your needs.
+ You can also add additional constructors or methods to the custom exception class as required.
+
+Q70. What is transient keyword in Java?
+=> In Java, the `transient` keyword is used to mark a variable so that it is not serialized when the object is serialized. During serialization, all fields of an object are saved, except those marked as `transient`. This is useful when you have fields that are not relevant to the persistent state of the object (e.g., sensitive data like passwords).
+
+Example:
+
+```java
+class User implements Serializable {
+    private String username;
+    private transient String password; // will not be serialized
+}
+```
+
+When an object of `User` is serialized, the `password` field is ignored, preventing it from being stored in the serialized form.
+
+Q71. What is agile?How it is used in your project?
+=> 
+Agile is a flexible software development methodology focused on iterative progress, collaboration, and adaptability. It breaks projects into small, manageable cycles called "sprints," typically lasting 1-4 weeks. Each sprint delivers a working product increment, allowing for continuous feedback and adjustments.
+
+In a project, Agile is used by following frameworks like Scrum or Kanban, where teams hold daily stand-up meetings, prioritize tasks using backlogs, and conduct sprint planning, reviews, and retrospectives. Agile fosters collaboration between developers, testers, and stakeholders, ensuring continuous delivery 
+and the ability to quickly respond to changing requirements.
+
+Q72. what is oops conecpts and give example?
+=> Object-Oriented Programming (OOP) is a programming paradigm based on the concept of "objects" that represent real-world entities. The key OOP concepts are:
+
+1. **Encapsulation**: Bundling data (variables) and methods into a single unit (class) and restricting access. Example:
+   ```java
+   class Person {
+       private String name;
+       public String getName() { return name; }
+       public void setName(String name) { this.name = name; }
+   }
+   ```
+
+2. **Inheritance**: A class can inherit properties and methods from another class. Example:
+   ```java
+   class Animal { void sound() { System.out.println("Animal Sound"); } }
+   class Dog extends Animal { void sound() { System.out.println("Bark"); } }
+   ```
+
+3. **Polymorphism**: The ability to take many forms. It allows one interface, many implementations. Example:
+   ```java
+   Animal a = new Dog();  // Dog behaves as an Animal
+   a.sound();  // Outputs "Bark"
+   ```
+
+4. **Abstraction**: Hiding complex details and showing only essential features. Example:
+   ```java
+   abstract class Vehicle { abstract void move(); }
+   class Car extends Vehicle { void move() { System.out.println("Car moves"); } }
+   ```
+
+Q73. Write a program to find the missing element from the array. ****
+=> 
+public class MissingNumberFinder {
+    public static int findMissingNumber(int[] array, int n) {
+        // Calculate the sum of first n natural numbers
+        int totalSum = n * (n + 1) / 2;
+
+        // Calculate the sum of the elements in the array
+        int arraySum = 0;
+        for (int num : array) {
+            arraySum += num;
+        }
+
+        // The missing number is the difference between the total sum and the array sum
+        return totalSum - arraySum;
+    }
+
+    public static void main(String[] args) {
+        // Example usage
+        int[] array = {1, 2, 4, 5, 6};
+        int n = 6;  // The array is supposed to have numbers from 1 to n
+
+        int missingNumber = findMissingNumber(array, n);
+        System.out.println("The missing number is: " + missingNumber);
+    }
+}
+
+Q74. What are Java8 streams
+=>Java 8 Streams provide a new abstraction for processing sequences of elements in a functional style.
+ They allow you to perform operations such as filtering, mapping, and reducing on collections in a concise and declarative manner. 
+ Streams support parallel processing and can be used to process data pipelines efficiently. They are not data structures 
+ themselves but work with existing collections or arrays, offering methods like filter, map, reduce, and collect to
+  manipulate and process data. Streams improve code readability and maintainability by enabling a more functional programming approach.
+
+
+Q75. What is String, collection, multithreading
+=> A **String** is a sequence of characters used to represent text in programming languages, often immutable (unchangeable once created).
+
+A **Collection** is a framework or data structure that groups multiple elements, typically objects, into a single unit, like arrays, lists, sets, or maps.
+
+**Multithreading** refers to the concurrent execution of multiple threads (smaller units of a process) within a single program. It allows tasks to run in parallel, improving performance in CPU-bound or I/O-bound operations
+ by utilizing system resources more efficiently.
+
+Q76. Is Java pass by value or by reference
+=> Java is **pass by value**. This means when a variable is passed to a method, a copy of the variable's value is made. For **primitive types** (int, float, etc.), the actual value is passed, so changes inside the method don’t affect the original variable. However, for **objects**, the value of the reference (memory address) is passed, not the actual object. This can create confusion because changes to the object's data are reflected outside the method, but the reference itself is still a copy, so reassigning
+ it inside the method doesn’t affect the original reference.
+
+Q77. what is microservices ,how its works
+=> **Microservices** is an architectural style where an application is divided into small, independent services that communicate through APIs. Each service handles a specific business function and runs in its own process. These services are loosely coupled, meaning they can be developed, deployed, and scaled independently.
+
+Microservices typically communicate over HTTP/REST, messaging queues, or gRPC. They work together to form a complete
+ application but are isolated, allowing teams to develop and update them individually. This architecture improves scalability,
+  resilience, and flexibility, and is often deployed in cloud 
+environments using containers like Docker.
+
+Q78. Features of java 8,oops,Custom Exception ,Collections
+=> **Java 8 Features**: 
+- **Lambda expressions** simplify code by enabling functional programming.
+- **Streams API** facilitates functional-style operations on collections.
+- **Default methods** in interfaces allow method definitions.
+- **Optional** handles null values safely.
+
+**OOPs Concepts**:
+- **Encapsulation**: Hiding data with access modifiers.
+- **Inheritance**: Deriving classes from a base class.
+- **Polymorphism**: Ability to take many forms (method overloading/overriding).
+- **Abstraction**: Hiding implementation details, exposing only essential features.
+
+**Custom Exception**:
+Custom exceptions extend the `Exception` class to define application-specific error handling. They enhance readability and can provide
+ more meaningful error messages.
+
+**Collections**:
+Java’s **Collections Framework** provides data structures like **List**, **Set**, **Map**, and **Queue**. It supports operations
+ like searching, sorting, and manipulation of group objects. Key interfaces include `Collection`, `List`, `Set`, and `Map`.
+
+Q79. what is serialization, deserialization, transient
+=> **Serialization** is the process of converting an object into a byte stream, enabling it to be saved to a file, database, or transferred over a network.
+
+**Deserialization** is the reverse process, where the byte stream is converted back into an object in memory.
+
+**Transient** is a keyword in Java used to mark variables that should not be serialized. When an object is serialized, transient variables are not included in the serialized state. This is useful when you don't want certain sensitive or non-essential data (e.g., passwords) to be stored 
+or transmitted during serialization.
+
+Q80. What is Method Overloading vs Overriding
+=> **Method Overloading** occurs when multiple methods in the same class share the same name but differ in parameter type, number, or order. It allows methods to perform similar functions with different inputs, enabling compile-time (static) polymorphism.
+
+**Method Overriding** happens when a subclass provides a specific implementation of a method already defined in its superclass. The method must have the same name, return type, and parameters. This supports run-time (dynamic) polymorphism, allowing a subclass to modify or extend the behavior of an inherited method.
+
+Overloading is within the same class; overriding is between superclass and subclass.
+
+Q81. Java collection use cases Hashmap working principle
+=> **Java Collection Use Cases**:
+- **ArrayList**: Dynamic arrays, useful for frequent access or iteration.
+- **LinkedList**: Doubly linked list, efficient for insertions/deletions.
+- **HashSet**: Unique elements, used when duplicate prevention is needed.
+- **HashMap**: Key-value pairs, ideal for fast lookups and data retrieval.
+
+**HashMap Working Principle**:
+HashMap stores data as key-value pairs and uses **hashing** to compute an index (bucket) for each key using its `hashCode()`. Multiple keys can map to the same bucket (collision). To resolve collisions, HashMap uses a linked list or binary tree. When a collision occurs, the new key-value pair is added to the list or tree at that bucket. During retrieval, HashMap uses the key’s `hashCode()` to find the bucket and compares the keys using `equals()` 
+to fetch the correct value. This makes it highly efficient for fast lookups (O(1) average time complexity).
+
+Q82. Difference btw string builder, and buffer
+=> The main difference between **StringBuilder** and **StringBuffer** is **thread-safety**:
+
+- **StringBuilder** is **not synchronized**, making it faster but not thread-safe. It is suitable for single-threaded environments
+ where multiple threads won’t access the same object simultaneously.
+  
+- **StringBuffer** is **synchronized**, meaning it is thread-safe but slower due to the overhead of synchronization. It is ideal for multi-threaded environments where thread safety is crucial.
+
+Both classes are mutable, meaning they allow modification of strings without creating new objects, unlike the immutable `String` class. Use StringBuilder for performance in single-threaded applications, StringBuffer for thread-safe operations.
+
+Q83. diffrenece between interafce and abstract class
+=> An interface defines a contract for classes to implement, focusing on method signatures without any implementation. It supports multiple inheritance, allowing a class to implement multiple interfaces. An abstract class, on the other hand, can provide some method implementations and define abstract methods that must be implemented by subclasses. It supports single inheritance and can maintain state through fields. In summary, use interfaces to define capabilities and abstract classes to share code and define common behavior among related classes.
+
+Q84. What are Stream terminal operators?
+=> Stream terminal operators in Java's Stream API are methods that produce a non-stream result or a side-effect, concluding the stream processing. Common terminal operators include `forEach()` (to iterate over elements), `collect()` (to accumulate elements into collections), `reduce()` (to combine elements into a single result), `count()` (to count elements), and `anyMatch()`, `allMatch()`, `noneMatch()` (to evaluate conditions). Unlike intermediate operations, terminal operators trigger the processing of the stream pipeline and generate
+ a final result or perform an action.
+
+Q85. Difference Between Interface and Abstract Classes?
+=> same above.
+Q86. What are the features of Java8
+=> same above.
+Q87. Print some thing java 8 lambda expression
+=> Sure! Here's a simple Java 8 lambda expression that prints the elements of a list:
+
+```java
+import java.util.Arrays;
+import java.util.List;
+
+public class LambdaExample {
+    public static void main(String[] args) {
+        List<String> names = Arrays.asList("Alice", "Bob", "Charlie");
+
+        // Using lambda expression to print each name
+        names.forEach(name -> System.out.println(name));
+    }
+}
+```
+
+In this example, `names.forEach(name -> System.out.println(name))` uses a lambda expression to iterate over each element in the `names` list and print it. The lambda `name -> System.out.println(name)` is a concise way to express the action to be performed on each element.
+Q88. What are constructors and its types
+=> 
+Constructors in Java are special methods used to initialize objects. They have the same name as the class and no return type. There are three main types of constructors:
+
+1. **Default Constructor**: Provided by the compiler if no other constructors are defined. It initializes object fields to default values.
+2. **No-Argument Constructor**: Defined explicitly by the programmer, initializes object fields to specific values or performs other setup tasks.
+3. **Parameterized Constructor**: Accepts arguments to initialize object fields with specific values at the time of object creation.
+
+Constructors ensure that objects are in a valid state when they are created.
+
+Q89. Given is two arrays! Merge and sort them
+=> import java.util.Arrays;
+
+public class MergeAndSortArrays {
+    public static void main(String[] args) {
+        int[] array1 = {3, 1, 4, 1};
+        int[] array2 = {5, 9, 2, 6};
+
+        // Merge arrays
+        int[] mergedArray = mergeArrays(array1, array2);
+
+        // Sort the merged array
+        Arrays.sort(mergedArray);
+
+        // Print the sorted merged array
+        System.out.println(Arrays.toString(mergedArray));
+    }
+
+    public static int[] mergeArrays(int[] array1, int[] array2) {
+        int[] result = new int[array1.length + array2.length];
+        System.arraycopy(array1, 0, result, 0, array1.length);
+        System.arraycopy(array2, 0, result, array1.length, array2.length);
+        return result;
+    }
+}
+
+Q90. Find the third highest salary in sql
+=> SELECT DISTINCT salary
+FROM employees
+Order by salary DESC  
+LIMIT 1 OFFSET 2;
+
+Q91. How to reverse a String
+=> public class ReverseString {
+    public static void main(String[] args) {
+        String original = "Hello, World!";
+        String reversed = new StringBuilder(original).reverse().toString();
+        System.out.println(reversed);
+    }
+}
+
+public class ReverseString {
+    public static void main(String[] args) {
+        String original = "Hello, World!";
+        String reversed = "";
+        
+        for (int i = original.length() - 1; i >= 0; i--) {
+            reversed += original.charAt(i);
+        }
+        
+        System.out.println(reversed);
+    }
+}
+
+
+Q92. Strong OOPS concept.
+
+=> Strong Object-Oriented Programming (OOP) concepts are foundational principles in designing robust and reusable software. The core concepts include:
+
+1. **Encapsulation**: Bundling data (fields) and methods (functions) into a single unit, the class, and restricting direct access to some of the object's components. This is achieved through access modifiers (`private`, `protected`, `public`) and getter/setter methods.
+
+2. **Inheritance**: Allowing a new class (subclass) to inherit attributes and methods from an existing class (superclass). This promotes code reuse and establishes a hierarchical relationship between classes.
+
+3. **Polymorphism**: Enabling objects to be treated as instances of their parent class rather than their actual class. This can be achieved through method overriding (runtime polymorphism) and method overloading (compile-time polymorphism).
+
+4. **Abstraction**: Hiding complex implementation details and showing only the essential features of an object. This is achieved through abstract classes and interfaces.
+
+These principles help in creating modular, maintainable, and scalable software systems.
+
+
+Q93. Write code to map properties in spring
+=> Mapping properties in Spring using @Value annotation
+
+Use @Value annotation to map properties from application.properties file
+
+Specify the key of the property inside the @Value annotation
+
+Example: @Value("${app.name}") private String appName;
+
+
+=> 
+In Spring, you can map properties from external configuration files (like `application.properties` or `application.yml`) to a Java class using the `@ConfigurationProperties` annotation. Below is an example of how to map properties in Spring.
+
+### Step 1: Define Properties in `application.properties`
+
+```properties
+app.name=MyApp
+app.version=1.0.0
+app.description=This is a Spring application
+```
+
+### Step 2: Create a POJO to Map the Properties
+
+```java
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+@Component
+@ConfigurationProperties(prefix = "app")
+public class AppProperties {
+
+    private String name;
+    private String version;
+    private String description;
+
+    // Getters and Setters
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+}
+```
+
+### Step 3: Use the Mapped Properties in a Service or Controller
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class AppController {
+
+    @Autowired
+    private AppProperties appProperties;
+
+    @GetMapping("/app-info")
+    public String getAppInfo() {
+        return "App Name: " + appProperties.getName() + 
+               ", Version: " + appProperties.getVersion() + 
+               ", Description: " + appProperties.getDescription();
+    }
+}
+```
+
+### Explanation:
+1. **Properties File**: Define key-value pairs in `application.properties` (or `application.yml`).
+2. **POJO Class**: The `AppProperties` class is annotated with `@ConfigurationProperties` and maps the values from the properties file.
+3. **Spring Component**: Annotate the class with `@Component` to make it a Spring-managed bean.
+4. **Controller/Service**: The properties are injected into a controller using `@Autowired` to access the mapped values.
+
+When you hit the `/app-info` endpoint, it will return the mapped values from the properties file.
+
+
+
+Q94. code to swap no withoud 3rd variable
+=> package permutation.stringRev;
+
+public class SwappingNumberXor {
+    public static void main(String[] args) {
+        int a = 5;
+        int b = 10;
+
+        // Swapping without a third variable using XOR
+        a = a ^ b; // a now holds the XOR of a and b
+        System.out.println("a is "+a);
+        b = a ^ b; // b now becomes the original value of a
+        System.out.println("b is "+a);
+        a = a ^ b; // a now becomes the original value of b
+        System.out.println("now a  is "+a);
+
+        System.out.println("After swapping: a = " + a + ", b = " + b);
+
+    }
+}
+
+Q95. What is functional interface
+=> A **functional interface** in Java is an interface that contains exactly one abstract method. It can have multiple default or static methods, but only one method must be abstract. Functional interfaces are often used in lambda expressions, method references, and streams API, as they provide a way to implement a function in a concise manner.
+
+Java's built-in **`@FunctionalInterface`** annotation can be used to indicate that an interface is intended to be a functional interface. This annotation is optional but recommended, as it ensures that the interface conforms to the functional interface pattern (i.e., it will generate a compile-time error if more than one abstract method is defined).
+
+### Key Features:
+1. **Single Abstract Method**: It can only have one abstract method, which makes it eligible for lambda expressions.
+2. **Default and Static Methods**: It can contain any number of default and static methods.
+3. **Java 8+ Feature**: Functional interfaces became a major feature in Java 8 with the introduction of lambda expressions.
+
+### Example:
+```java
+@FunctionalInterface
+interface MyFunctionalInterface {
+    void performTask();  // Single abstract method
+}
+
+public class Main {
+    public static void main(String[] args) {
+        // Using a lambda expression to implement the functional interface
+        MyFunctionalInterface task = () -> System.out.println("Task performed!");
+        task.performTask();
+    }
+}
+```
+
+### Common Functional Interfaces:
+- **`Runnable`**: Contains the method `void run()`.
+- **`Callable<T>`**: Contains the method `T call()`.
+- **`Supplier<T>`**, **`Consumer<T>`**, **`Predicate<T>`**, and **`Function<T, R>`** are examples of built-in functional interfaces in Java's standard library.
+
+Functional interfaces are critical in functional programming paradigms and provide the foundation for lambda expressions in Java.
+
+
+Q96. What is indexing in Mysql?
+=> Indexing in MySQL is a technique used to improve the speed of data retrieval operations on a database table. An index creates a data structure that allows MySQL to find records faster without scanning the entire table. It works similarly to an index in a book, allowing quick lookups.
+
+Indexes can be created on one or more columns, and they significantly speed up **`SELECT`** queries but may slightly slow down **`INSERT`**, **`UPDATE`**, and **`DELETE`** operations due to the need to update the index.
+
+Common index types include **B-tree** and **Full-text indexes**.
+
+Q97. String s=null; ?
+=> Declaring a null String variable
+
+The variable 's' is of type String and has a null value assigned to it
+
+Attempting to use this variable without initializing it will result in a NullPointerException
+
+The variable can be assigned a value later using the assignment operator '='
+
+note: 
+In Java, `String s = null;` declares a `String` variable `s` and initializes it with a `null` value. This means that `s` does not reference any string object in memory. Trying to call a method on `s` at this point (like `s.length()`) will result in a **NullPointerException**.
+
+To avoid such exceptions, it is important to check if the string is `null` before performing any operations on it, for example:
+
+```java
+if (s != null) {
+    System.out.println(s.length());
+}
+```
+
+Assigning `null` to a string is common when initializing variables that will be assigned a value later.
+
+Q98. Method overloading vs overriding?
+=> **Method Overloading** and **Method Overriding** are two key concepts in Java:
+
+- **Method Overloading** occurs when multiple methods in the same class have the same name but differ in their parameters (number, type, or both). It is a compile-time polymorphism. The return type can differ, but the method signature must differ. It allows flexibility within a class.
+  
+  Example:
+  ```java
+  void print(int a) {}
+  void print(String b) {}
+  ```
+
+- **Method Overriding** occurs when a subclass provides a specific implementation of a method that is already defined in its superclass. It is runtime polymorphism. The method signature (name, parameters) must be the same, but the functionality is different in the subclass.
+
+  Example:
+  ```java
+  class Parent { void show() {} }
+  class Child extends Parent { @Override void show() {} }
+  ```
+
+Overloading is within the same class, while overriding happens between parent and child classes.
+
+
+Q99. get 2nd highest salary using stream
+=>
+
+Q100. What is Exception handling
+=>
+Q101. what is Flat Map
+=>
+Q102. What is Stream API
+=>
+Q103. what is java
+=>
+Q104. Explain internal working of HashMap
+=>
+Q105. why we use @profile?
+=>
+Q106. difference bwteen abstract and interface
+=>
+Q107. Comparable vs comparator explain
+
+Q108. what is inheritance
+
+Q109. What is map, hashmap
+
+Q110. String immutable reason?
+
+Q111. what is jre explain
+
+Q112. what is jdk explain
+
+Q113. Flow of spring boot application
+
+Q114. Why String immutable
+
+Q115. What is polymorphism
+
+Q116. What is expected CTC
+=>
+
+Q117. Internal working of HashMap
+
+Q118. Explain Funcational InterFace.
+Functional Interface is an interface with only one abstract method, used for lambda expressions.
+
+Functional Interface can have multiple default or static methods.
+
+Examples include Runnable, Callable, Comparator interfaces.
+
+Used for lambda expressions to provide implementation for the single abstract method.
+
+
+Q119. Reason for job switch
+
+Q120. Write Factorial program
+
+Q121. Advantages of Spring Boot
+
+Q122. explain OOPS concept are
+
+Q123. Fetch vs lazy code
+
+Q124. Hashmap vs hashtable
+
+Q125. Coding java streams
+
+Q126. Explain Project
+
+Q127. OOPS concept with example
+=> 
+
+
+
+purushotham shared:
+
+1. programming -> Non repeted character in a string
+
+=>  import java.util.HashMap;
+import java.util.Map;
+
+class Solution {
+    public char firstNonRepeatedChar(String s) {
+        Map<Character, Integer> charCount = new HashMap<>();
+
+        // First pass: Count the frequency of each character
+        for (char c : s.toCharArray()) {
+            charCount.put(c, charCount.getOrDefault(c, 0) + 1);
+        }
+
+        // Second pass: Find the first character with a frequency of 1
+        for (char c : s.toCharArray()) {
+            if (charCount.get(c) == 1) {
+                return c;
+            }
+        }
+
+        // If no non-repeated character is found, return a special character or indicate failure
+        return '\0'; // Return null character or any other indicator as needed
+    }
+
+    public static void main(String[] args) {
+        Solution solution = new Solution();
+
+        String s1 = "swiss";
+        String s2 = "programming";
+        String s3 = "aabbcc";
+
+        System.out.println("First non-repeated character in 'swiss': " + solution.firstNonRepeatedChar(s1)); // Output: 'w'
+        System.out.println("First non-repeated character in 'programming': " + solution.firstNonRepeatedChar(s2)); // Output: 'p'
+        System.out.println("First non-repeated character in 'aabbcc': " + solution.firstNonRepeatedChar(s3)); // Output: '\0'
+    }
+}
+
+
+2. Basic question on oops
+=> javatpoint
+3. What is abstraction and encapsulation.
+=>  **Abstraction** simplifies complex systems by hiding details and showing only essential features, 
+allowing users to interact with objects without understanding their inner workings. 
+**Encapsulation** bundles data and methods that operate on the data into a single unit (class), restricting direct access 
+to some components to protect the integrity of the object's state. Together, they enhance code modularity, maintainability, 
+and security in object-oriented programming by separating interface from implementation and controlling access to data.
+
+
+4. java8 features.
+=> Java 8 introduced several significant features that enhanced the language's capabilities, making it more modern and functional. Key features include:
+
+A. **Lambda Expressions**: Enable functional programming by allowing you to write concise code that can be passed around as an argument.
+
+b. **Stream API**: Provides a powerful way to work with collections and sequences of data in a functional style, allowing operations like filtering, mapping, and reducing.
+
+c. **Optional Class**: A container object used to represent the presence or absence of a value, helping to avoid `NullPointerException`.
+
+D. **Default and Static Methods in Interfaces**: Allows interfaces to have method implementations, which helps in extending interfaces without breaking existing implementations.
+
+E. **Method References**: A shorthand notation of a lambda expression to call a method directly by its name.
+
+F. **New Date and Time API**: Provides a more comprehensive and modern way to handle dates and times, with classes like `LocalDate`, `LocalTime`, and `LocalDateTime`.
+
+G. **Functional Interfaces**: Interfaces with a single abstract method, such as `Runnable`, `Comparator`, which can be implemented using lambda expressions.
+
+H. **Nashorn JavaScript Engine**: Allows embedding JavaScript code within Java applications and running it natively.
+
+These features made Java 8 a pivotal release, significantly improving developer productivity and enabling a more functional approach to programming in Java.
+
+
+
+5. what is default and static methods
+=>**Default methods** in interfaces allow method implementations within the interface itself, enabling new methods to be added to interfaces without breaking existing implementations. They are defined using the `default` keyword.
+**Static methods** in interfaces are methods that belong to the interface itself rather than any instance of a class. They can be called on the interface directly and are defined using the `static` keyword.
+Both features were introduced in Java 8 to enhance the flexibility and functionality of interfaces, allowing them to evolve without affecting the classes that implement them.
+
+
+6. difference between MAP and flat map
+
+=> map:
+Purpose: Transforms each element of a stream into another form. It applies a function to each element, returning a stream of the same structure but with different elements.
+Output: A stream of transformed elements. Each input element is mapped to exactly one output element.
+
+List<String> words = List.of("apple", "banana", "cherry");
+List<Integer> lengths = words.stream()
+                             .map(String::length)
+                             .collect(Collectors.toList());
+// Output: [5, 6, 6]
+
+
+flatMap:
+Purpose: Transforms each element of a stream into another stream, and then flattens the result into a single stream. It’s often used when each input element can map to zero, one, or more output elements.
+Output: A single, flat stream of elements. Each input element can map to multiple output elements, and the results are combined into a single stream.
+List<String> words = List.of("apple", "banana");
+List<Character> characters = words.stream()
+                                  .flatMap(word -> word.chars().mapToObj(c -> (char) c))
+                                  .collect(Collectors.toList());
+// Output: ['a', 'p', 'p', 'l', 'e', 'b', 'a', 'n', 'a', 'n', 'a']
+
+Summary:
+map: Transforms each element to another element.
+flatMap: Transforms each element to a stream, then flattens all streams into a single stream.
+
+
+7. Explain about HashMap
+=> 
+A `HashMap` is a widely used data structure in Java that implements the `Map` interface. It stores key-value pairs and allows efficient retrieval, insertion, and deletion of elements based on keys.
+
+### Key Features of `HashMap`:
+
+A. **Key-Value Pairs**:
+   - Each entry in a `HashMap` consists of a key and a corresponding value. Keys must be unique, but values can be duplicated.
+
+b. **Hashing**:
+   - `HashMap` uses a technique called hashing to store keys. It computes a hash code for each key, which determines the index in the underlying array where the key-value pair will be stored.
+c. **Performance**:
+   - The average time complexity for `get`, `put`, and `remove` operations in a `HashMap` is O(1), making it very efficient for large data sets.
+
+d. **Null Values**:
+   - `HashMap` allows one `null` key and multiple `null` values.
+
+e. **Iteration Order**:
+   - `HashMap` does not guarantee any specific order of iteration. If an order is required, `LinkedHashMap` can be used instead.
+
+f. **Collision Handling**:
+   - When two keys hash to the same index (a collision), `HashMap` handles it by chaining (using linked lists or trees in buckets).
+
+g. **Capacity and Load Factor**:
+   - `HashMap` has a default initial capacity (usually 16) and a load factor (usually 0.75). The load factor determines when the `HashMap` should be resized (typically when it reaches 75% of its capacity).
+
+### Example:
+
+```java
+import java.util.HashMap;
+
+public class HashMapExample {
+    public static void main(String[] args) {
+        // Creating a HashMap
+        HashMap<String, Integer> map = new HashMap<>();
+
+        // Adding key-value pairs to the HashMap
+        map.put("Apple", 10);
+        map.put("Banana", 20);
+        map.put("Cherry", 30);
+
+        // Retrieving a value by key
+        int value = map.get("Banana");
+        System.out.println("Value for 'Banana': " + value); // Output: 20
+
+        // Iterating through the HashMap
+        for (String key : map.keySet()) {
+            System.out.println(key + " => " + map.get(key));
+        }
+
+        // Checking if a key or value exists
+        System.out.println("Contains 'Apple': " + map.containsKey("Apple")); // Output: true
+        System.out.println("Contains value 20: " + map.containsValue(20)); // Output: true
+
+        // Removing an entry
+        map.remove("Cherry");
+
+        // HashMap after removal
+        System.out.println("HashMap after removal: " + map);
+    }
+}
+```
+
+### Use Cases:
+- `HashMap` is ideal for scenarios where quick lookups, inserts, and deletes are necessary, such as caching data, counting occurrences, or associating unique identifiers with data.
+
+### Limitations:
+- `HashMap` is not thread-safe. For concurrent access, consider using `ConcurrentHashMap` or synchronizing access externally.
+- `HashMap` does not maintain order; use `LinkedHashMap` if order preservation is needed.
+
+
+
+
+8. Microervices.
+ => We use microservices to break down large, complex applications into smaller, independent services that can be developed, deployed, and scaled individually. This approach enhances flexibility, allows for faster development cycles, improves fault isolation, and enables teams to use different technologies and frameworks for different services, leading to more efficient and maintainable systems.
+
+
+9. Explain about circuit breaker.
+=> A **Circuit Breaker** is a design pattern used in microservices and distributed systems to prevent cascading failures and enhance system resilience. It acts as a safeguard against the repeated execution of operations that are likely to fail, such as calling a service that is down or experiencing high latency.
+
+### Key Concepts:
+
+1. **States**:
+   - **Closed**: The circuit is in a normal state, and requests are allowed to pass through. If a failure occurs, the circuit records the failure.
+   - **Open**: After a threshold of failures is reached, the circuit "opens," and subsequent requests are immediately failed or redirected, preventing further strain on the failing service.
+   - **Half-Open**: After a set period, the circuit attempts to return to the closed state by allowing a limited number of requests to test if the underlying issue is resolved.
+
+2. **Failure Detection**:
+   - The circuit breaker monitors failures (like exceptions or timeouts) and triggers a state change based on predefined thresholds (e.g., the number of consecutive failures).
+
+3. **Fallback**:
+   - During an open state, a fallback mechanism can provide a default response or redirect to a different service, ensuring that the system remains functional even if part of it is down.
+
+### Use Cases:
+
+- **Preventing Cascading Failures**: If a downstream service is failing, the circuit breaker prevents further calls to that service, avoiding overwhelming it and allowing it to recover.
+- **Improving Resilience**: It helps maintain system stability by isolating faults and preventing them from spreading throughout the system.
+- **Optimizing Resources**: By cutting off failing requests, the circuit breaker conserves system resources, reducing unnecessary load.
+
+### Example:
+
+Consider a service A that calls service B. If service B becomes unresponsive, the circuit breaker in service A will detect the failures and eventually "open" the circuit, causing service A to stop making calls to service B until it stabilizes.
+
+### Popular Implementations:
+
+- **Netflix Hystrix**: One of the most well-known libraries for implementing circuit breakers (now deprecated but served as the basis for others).
+- **Resilience4j**: A lightweight, easy-to-use Java library for circuit breakers, retries, and more.
+- **Spring Cloud Circuit Breaker**: A library built on top of Resilience4j and other implementations for easier integration with Spring Boot applications.
+
+The Circuit Breaker pattern is essential in microservices architectures to ensure that localized failures don't compromise the entire system, thus improving overall system resilience.
+
+
+
+
+
+Ashutosh:
+JAVA 8
+SET/MAP
+Spring boot
+Hibernate
+Database join.
+programming:  Array manipulation and stream api related.
+
+
+
+
+
+
+
+
+
